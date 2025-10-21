@@ -21,3 +21,6 @@
                              ╲:│   │
                               ╲│___│
                                                                    """
+
+def hallo():
+    print("Hallo")
