@@ -21,3 +21,5 @@
                              ╲:│   │
                               ╲│___│
                                                                    """
+def eins():
+    print("wurscht")
