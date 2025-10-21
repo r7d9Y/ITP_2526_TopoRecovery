@@ -21,5 +21,8 @@
                              ╲:│   │
                               ╲│___│
                                                                    """
-def eins():
+def eins(): #meine version
     print("wurscht")
+
+def hallo():
+    print("Hallo")
