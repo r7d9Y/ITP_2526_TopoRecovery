@@ -16,8 +16,7 @@ class Connector:
         return f"Connector(ip={self.ip}, port={self.port})"
 
     def __str__(self):
-        string = ".".join([str(self.ip >> (8 * (3 - i)) & 255) for i in range(4)])
-        return f"{string}:{str(self.port)}"
+        return f"{self.ip}:{self.port}"
 
     @property
     def device_type(self):
@@ -33,36 +32,26 @@ class Connector:
 
     @property
     def ip(self):
-        return self._ip
+        return self._device["ip"]
 
     @ip.setter
     def ip(self, add):
         if isinstance(add, str):
             if not re.match(r'^(\d{1,3}\.){3}\d{1,3}$', add):
                 raise ValueError('Invalid IP address format')
-            ip = 0
-            for i, seg in enumerate(add.split('.')):
-                if not 0 <= int(seg) <= 255:
-                    raise ValueError('Invalid IP address ##')
-                ip = int(seg) << (8 * (3 - i)) | ip
-            self._ip = ip
-            return
-        if isinstance(add, int):
-            if not 0 <= add <= 2**32:
-                raise ValueError('Invalid IP address')
-            self._ip = add
+            self._device["ip"] = add
             return
         raise ValueError('Invalid IP address format')
 
     @property
     def port(self):
-        return self._port
+        return self._device["port"]
 
     @port.setter
     def port(self, port):
         if not isinstance(port, int):
             raise ValueError('Invalid port format')
-        self._port = port
+        self._device["port"] = port
 
     @property
     def username(self):
@@ -85,9 +74,11 @@ class Connector:
         self._device["password"] = pwd
 
     def connect(self):
-        pass
-
+        print(self._device)
+        a = ConnectHandler(**self._device)
+        print(a)
 
 if __name__ == '__main__':
-    c = Connector('127.0.0.1', 80)
+    c = Connector('cisco_ios_telnet', '127.0.0.1', 5001)
     print(str(c))
+    c.connect()
