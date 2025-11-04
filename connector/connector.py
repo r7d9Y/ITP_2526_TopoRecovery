@@ -120,10 +120,14 @@ class Connector:
         return self._device
 
     @property
-    def conn(self) -> ConnectHandler:
+    def conn(self):
         return self._conn
 
     def connect(self) -> bool:
+        """
+        Establishes a telnet connection to the device specified in the instance variables
+        :returns: True if connection established successfully, False otherwise
+        """
         # Prevent multiple connections
         if self._conn is not None:
             raise RuntimeError(f'CANNOT_ESTABLISH_MULTIPLE_CONNECTIONS_TO_DEVICE_AT:{self.ip}:{self.port}')
@@ -136,6 +140,11 @@ class Connector:
 
 
     def send_command_with_response(self, command: str) -> Tuple[bool, str]:
+        """
+        Sends a command to the connected device and returns a tuple indicating success and the output in
+        :param command: is the command string to send to the device
+        :return: (success: bool, output: str)
+        """
         output = self._conn.send_command(command)
         # Check for invalid output
         if output.endswith("% Invalid input detected at '^' marker."):
@@ -143,6 +152,13 @@ class Connector:
         return True, output
 
     def send_command(self, command: str, expected_str: str = None) -> bool:
+        """
+        Sends a command to the connected device and returns True if the parameter expected_str is found at the end of
+        the output, False otherwise
+        :param command: is the command string to send to the device
+        :param expected_str: is the expected string to be found at the end of the output
+        :return: is a boolean indicating if the expected string was found
+        """
         output = self.conn.send_command(command, expect_string=expected_str)
         if output.endswith("% Invalid input detected at '^' marker."):
             return False
