@@ -92,7 +92,7 @@ class Connector:
         self._conn = ConnectHandler(**self.device)
 
     def send_command_with_response(self, command: str) -> Tuple[bool, str]:
-        output = self._conn.send_command(command)
+        output = self.conn.send_command(command)
         if output.endswith("% Invalid input detected at '^' marker."):
             return False, output
         return True, output

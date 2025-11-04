@@ -1,26 +1,30 @@
 {
   "devices": {
-    "device": {
-      "device_type": "cisco_ios_telnet",
-      "ip": "192.168.44.128",
+    "192.168.44.128": {
+      "device_type": "router",
+      "device_ios": "cisco_ios_telnet",
+      "username": "cisco",
+      "password": "cisco",
       "port": [
         5001
       ]
     }
   },
   "commands": {
-    "running": {
-      "prompt": [
+    "router": {
+      "running": [
         "show running-config"
       ]
     },
-    "vlan": {
-      "prompt": [
+    "switch": {
+      "running": [
+        "show running-config"
+      ],
+      "vlan": [
         "show vlan brief"
-      ]
-    },
-    "vtp": {
-      "prompt": [
+      ],
+      "vtp": [
+        "show vtp summary",
         "show vtp password"
       ]
     }
