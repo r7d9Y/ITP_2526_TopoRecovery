@@ -1,18 +1,33 @@
+r"""
+      _____________________________________________
+     __/___  ____/\__/ ______ \____/ /\____/ /\___
+    ___\__/ /\_\_\/_/ /_____/ /\__/_/_/___/_/\/__
+   ______/ /\/_____/ ____  __/\/__\/_  __/\_\/__
+  ______/ /\/_____/ /\__\\ \_\/____\/ /\_\/____
+ ______/_/\/_____/_/\/___\\_\______/_/\/______
+_______\_\/______\_\/_____|_|______\_\/______
+"""
+
 import re
 from typing import Tuple, List
-
 from netmiko import ConnectHandler
 
+
 class Connector:
+    """
+    Connector class to manage telnet connections to (virtual) network devices using the Netmiko library
+    """
+
     def __init__(self, device_type: str, ip: str, port: int, username: str = None, password: str = None):
+        self._conn = None
         self._device = {}
         self.device_type = device_type
         self.ip = ip
         self.port = port
+        # only set username and password if both are provided
         if username and password:
             self.username = username
             self.password = password
-
 
     def __repr__(self) -> str:
         args = ", ".join([f"{arg}={self.device[arg]}" for arg in self.device])
@@ -27,10 +42,12 @@ class Connector:
 
     @device_type.setter
     def device_type(self, type: str) -> None:
+        # check that the device type is a string
         if not isinstance(type, str):
-            raise TypeError("Type must be a string")
+            raise TypeError("TYPE_MUST_BE_A_STRING")
+        # check that type ends with _telnet to ensure telnet device connection
         if not type.endswith("_telnet"):
-            raise ValueError("Type must end with '_telnet'")
+            raise ValueError("TYPE_MUST_END_WITH_'_telnet'")
         self._device["device_type"] = type
 
     @property
@@ -38,15 +55,27 @@ class Connector:
         return self._device["ip"]
 
     @ip.setter
-    def ip(self, add: str) -> None:
-        if isinstance(add, str):
+    def ip(self, ip: str) -> None:
+        if isinstance(ip, str):
             # the pattern matches valid IPv4 addresses and
             # 'localhost', theses are seen as valid input for telnet connections
-            if not re.match(r'^(((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.){3}(25[0-5]|(2[0-4]|1\d|[1-9]|)\d)$|localhost)', add):
-                raise ValueError('Invalid IP address format')
-            self._device["ip"] = add
+            if not re.match(r'^(((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.){3}(25[0-5]|(2[0-4]|1\d|[1-9]|)\d)$|localhost)',
+                            ip):
+                raise ValueError(f'INVALID_IP_ADDRESS_FORMAT:{ip}')
+            if ip != 'localhost':
+                # further check each octet is between 0 and 255
+                octets = ip.split('.')
+                # this should always be 4 due to the regex match above
+                for octet in octets:
+                    if not 0 <= int(octet) <= 255:
+                        raise ValueError(f'INVALID_IP_ADDRESS_OCTET_RANGE:{ip}')
+                # check for special IP addresses that are not allowed (unspecified, multicast, general broadcast)
+                if ip == '0.0.0.0' or (224 <= int(ip.split('.')[0]) <= 239) or ip == '255.255.255.255':
+                    raise ValueError(f'INVALID_IP_ADDRESS:{ip}')
+            self._device["ip"] = ip
             return
-        raise ValueError('Invalid IP address format')
+        # raise error if ip is not a string, which it should always be for working with netmiko
+        raise ValueError(f'INVALID_IP_ADDRESS_TYPE:{type(ip)}')
 
     @property
     def port(self) -> int:
@@ -55,7 +84,9 @@ class Connector:
     @port.setter
     def port(self, port: int) -> None:
         if not isinstance(port, int):
-            raise ValueError('Invalid port format')
+            raise ValueError(f'INVALID_PORT_FORMAT:{type(port)}')
+        if port < 0 or port > 65535:
+            raise ValueError(f'PORT_OUT_OF_RANGE:{port}')
         self._device["port"] = port
 
     @property
@@ -65,8 +96,14 @@ class Connector:
     @username.setter
     def username(self, username: str) -> None:
         if not isinstance(username, str):
-            raise TypeError('Invalid username type')
-        self._device["username"] = username
+            raise TypeError(f'INVALID_USERNAME_TYPE:{type(username)}')
+
+        # Regex allows alphanumeric characters and special characters . _ - @ + $ ~ ! % : / \ and a length of 0-64
+        pattern = r'^[A-Za-z0-9._\-@+$~!%:/\\]{0,64}$'
+        if username and re.fullmatch(pattern, username) is not None:
+            self._device["username"] = username
+        elif username is not None:
+            raise ValueError(f'INVALID_USERNAME_OR_LENGTH:{username}')
 
     @property
     def password(self) -> str:
@@ -86,13 +123,21 @@ class Connector:
     def conn(self) -> ConnectHandler:
         return self._conn
 
-    def connect(self) -> ConnectHandler:
-        if hasattr(self, "_conn"):
-            raise RuntimeError('Cannot connect twice')
-        self._conn = ConnectHandler(**self.device)
+    def connect(self) -> bool:
+        # Prevent multiple connections
+        if self._conn is not None:
+            raise RuntimeError(f'CANNOT_ESTABLISH_MULTIPLE_CONNECTIONS_TO_DEVICE_AT:{self.ip}:{self.port}')
+        # Establish connection
+        try:
+            self._conn = ConnectHandler(**self.device)
+            return True
+        except Exception:
+            return False
+
 
     def send_command_with_response(self, command: str) -> Tuple[bool, str]:
-        output = self.conn.send_command(command)
+        output = self._conn.send_command(command)
+        # Check for invalid output
         if output.endswith("% Invalid input detected at '^' marker."):
             return False, output
         return True, output
