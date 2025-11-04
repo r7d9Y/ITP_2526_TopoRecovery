@@ -7,13 +7,13 @@
 # _______\_\/______\_\/_____|_|______\_\/______
 
 import re
-
-
+from tokenize import blank_re
 def parse():
     with open("./raw_output_testdatei.txt", "r", encoding="utf-8") as f:
         zeilen = f.readlines()  # Liste mit alle Zeilen
 
     with open("output.txt", "w") as f:
+    #-----------VLAN------------
 
         # VLAN-Nummern + Name ermitteln
         vlan_start_index = 0
@@ -21,13 +21,13 @@ def parse():
             if re.search(r"\*\* start vlan \*\*", line):
                 vlan_start_index = index
                 break
-
         # Code für das Bereinigen der running-config ...
         end_run = vlan_start_index - 2
         run = zeilen[:end_run]
         run = re.sub(r"\n{2,}", "\n\n", re.sub(r"^ *!.*$", "", "\n".join(run), re.M))
 
-        # VLAN-Konfig parsen
+    #------
+        # VLAN-Konfig erstellen und in das Output-File schreiben
         for vlan_konfig_zeile in zeilen[vlan_start_index:]:
             if not vlan_konfig_zeile[0].isdigit() or vlan_konfig_zeile[0].isdigit() and int(
                     vlan_konfig_zeile[:4].strip()) < 1001:
@@ -41,39 +41,36 @@ def parse():
             else:
                 break
 
-        # VTP-Konfig parsen
+        #-----------VTP------------
+
+        # Start-Lese-Index ermitteln
         vtp_start_index = 0
         for index, line in enumerate(zeilen):
             if re.search(r"\*\* start vtp \*\*", line):
-                vtp_start_index = index
+                vtp_start_index = index + 1
                 break
 
-        vtp_version = ""
-        vtp_mode = ""
-        vtp_domain = ""
-        vtp_password = ""
-        for vtp_konfig_zeile in zeilen[vtp_start_index:]:
-            if re.search(r"VTP Operating Mode", vtp_konfig_zeile):
-                parts = vtp_konfig_zeile.split(":")
-                vtp_mode = parts[1].strip()
-            elif re.search(r"VTP version running", vtp_konfig_zeile):
-                parts = vtp_konfig_zeile.split(":")
-                vtp_version = parts[1].strip()
-            elif re.search(r"VTP Domain Name", vtp_konfig_zeile):
-                parts = vtp_konfig_zeile.split(":")
-                vtp_domain = parts[1].strip()
-            elif re.search(r"VTP Password", vtp_konfig_zeile):
-                parts = vtp_konfig_zeile.split(":")
-                vtp_password = parts[1].strip()
-            elif re.search(r"Configuration Revision", vtp_konfig_zeile):
-                parts = vtp_konfig_zeile.split(":")
-                if int(parts[1].strip()) == 0:
-                    break
-        f.write(f"\nvtp mode {vtp_mode}\n")
-        f.write(f"vtp version {vtp_version}\n")
-        f.write(f"vtp domain {vtp_domain}\n")
-        f.write(f"vtp password {vtp_password}\n")
+        write_konfig = False # Es soll nur etwas rausgeschrieben werden, wenn auch eine Konfig existiert
+        vtp_commands_to_write = [] # Liste mit allen Commands, die in das Output-File geschrieben werden wenn die Variable 'write_konfig' True ist
 
+        # VTP-Konfig parsen
+        for vtp_konfig_zeile in zeilen[vtp_start_index:]:
+            if ":" in vtp_konfig_zeile:
+                parts = vtp_konfig_zeile.split(":", 1)
+
+                if parts[0].strip() == "VTP Operating Mode":
+                    vtp_commands_to_write.append(f"vtp mode {parts[1].strip()}\n")
+                elif parts[0].strip() == "VTP version running":
+                    vtp_commands_to_write.append(f"\nvtp version {parts[1].strip()}\n")
+                elif parts[0].strip() == "VTP Domain Name":
+                    vtp_commands_to_write.append(f"vtp domain {parts[1].strip()}\n")
+                elif parts[0].strip() == "VTP Password":
+                    vtp_commands_to_write.append(f"vtp password {parts[1].strip()}\n")
+                elif parts[0].strip() == "Configuration Revision":
+                    if int(parts[1].strip()) == 1:
+                        write_konfig = True
+        if write_konfig: # wenn die Variable auf True gesetzt wurde, werden alle Elemente aus der Liste in das Output-File geschrieben
+            f.writelines(vtp_commands_to_write)
 
 if __name__ == "__main__":
     parse()
