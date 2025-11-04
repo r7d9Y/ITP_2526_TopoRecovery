@@ -13,10 +13,11 @@ class Connector:
 
 
     def __repr__(self):
-        return f"Connector(ip={self.ip}, port={self.port})"
+        args = ", ".join([f"{arg}={self.device[arg]}" for arg in self.device])
+        return f"Connector({args})"
 
     def __str__(self):
-        return f"{self.ip}:{self.port}"
+        return f"{self.device_type} -> {self.ip}:{self.port}"
 
     @property
     def device_type(self):
@@ -73,12 +74,18 @@ class Connector:
             raise TypeError('Invalid username type')
         self._device["password"] = pwd
 
+    @property
+    def device(self):
+        return self._device
+
+
     def connect(self):
-        print(self._device)
-        a = ConnectHandler(**self._device)
-        print(a)
+        connection = ConnectHandler(**self._device)
+
+
 
 if __name__ == '__main__':
-    c = Connector('cisco_ios_telnet', '127.0.0.1', 5001)
+    c = Connector('cisco_ios_telnet', '192.168.44.128', 5001, "cisco", "cisco")
+    print(repr(c))
     print(str(c))
     c.connect()
