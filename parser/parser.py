@@ -51,12 +51,6 @@ def parse():
                 vtp_start_index = index + 1
                 break
 
-        # Variablen für die benötigten Commands
-        vtp_version = ""
-        vtp_mode = ""
-        vtp_domain = ""
-        vtp_password = ""
-
         write_konfig = False # Es soll nur etwas rausgeschrieben werden, wenn auch eine Konfig existiert
         vtp_commands_to_write = [] # Liste mit allen Commands, die in das Output-File geschrieben werden wenn die Variable 'write_konfig' True ist
 
