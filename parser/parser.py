@@ -8,22 +8,26 @@
 
 import re
 from tokenize import blank_re
+def parse():
+    with open("./raw_output_testdatei.txt", "r", encoding="utf-8") as f:
+        zeilen = f.readlines()  # Liste mit alle Zeilen
 
-with open("./raw_output_testdatei.txt", "r", encoding="utf-8") as f:
-    zeilen = f.readlines()  # Liste mit alle Zeilen
-
-with open("output.txt", "w") as f:
+    with open("output.txt", "w") as f:
 
     # Code zum Bereinigen der Running-Config
 
     #-----------VLAN------------
 
-    # VLAN-Nummern + Name ermitteln
-    vlan_start_index = 0
-    for index, line in enumerate(zeilen):  # enumerate gibt Index und Zeile
-        if re.search(r"\*\* start vlan \*\*", line): # Startpunkt für die VLAN-Konfig ermittelt
-            vlan_start_index = index
-            break
+        # VLAN-Nummern + Name ermitteln
+        vlan_start_index = 0
+        for index, line in enumerate(zeilen):  # enumerate gibt Index und Zeile
+            if re.search(r"\*\* start vlan \*\*", line):
+                vlan_start_index = index
+                break
+        # Code für das Bereinigen der running-config ...
+        end_run = vlan_start_index-2
+        run = zeilen[:end_run]
+        run = re.sub(r"^ *!.*$","","\n".join(run)).split("\n")
 
     # VLAN-Konfig erstellen und in das Output-File schreiben
     for vlan_konfig_zeile in zeilen[vlan_start_index:]:
@@ -75,3 +79,6 @@ with open("output.txt", "w") as f:
                     write_konfig = True
     if write_konfig: # wenn die Variable auf True gesetzt wurde, werden alle Elemente aus der Liste in das Output-File geschrieben
         f.writelines(vtp_commands_to_write)
+
+if __name__ == "__main__":
+    parse()
