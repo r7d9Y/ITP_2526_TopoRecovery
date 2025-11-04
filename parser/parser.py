@@ -13,9 +13,6 @@ def parse():
         zeilen = f.readlines()  # Liste mit alle Zeilen
 
     with open("output.txt", "w") as f:
-
-    # Code zum Bereinigen der Running-Config
-
     #-----------VLAN------------
 
         # VLAN-Nummern + Name ermitteln
@@ -24,61 +21,63 @@ def parse():
             if re.search(r"\*\* start vlan \*\*", line):
                 vlan_start_index = index
                 break
+    #------
         # Code für das Bereinigen der running-config ...
         end_run = vlan_start_index-2
         run = zeilen[:end_run]
         run = re.sub(r"^ *!.*$","","\n".join(run)).split("\n")
 
-    # VLAN-Konfig erstellen und in das Output-File schreiben
-    for vlan_konfig_zeile in zeilen[vlan_start_index:]:
-        if not vlan_konfig_zeile[0].isdigit() or vlan_konfig_zeile[0].isdigit() and int(
-                vlan_konfig_zeile[:4].strip()) < 1001:
-            if vlan_konfig_zeile[0].isdigit() and int(vlan_konfig_zeile[:4].strip()) != 1:
-                vlan_nummer: str = ""
-                vlan_name: str = ""
-                parts = vlan_konfig_zeile.split()  # Zeile an Leerzeichen teilen
-                vlan_nummer = parts[0]
-                vlan_name = parts[1]
-                f.write(f"vlan {vlan_nummer} \nname {vlan_name}\n")
-        else:
-            break
+    #------
+        # VLAN-Konfig erstellen und in das Output-File schreiben
+        for vlan_konfig_zeile in zeilen[vlan_start_index:]:
+            if not vlan_konfig_zeile[0].isdigit() or vlan_konfig_zeile[0].isdigit() and int(
+                    vlan_konfig_zeile[:4].strip()) < 1001:
+                if vlan_konfig_zeile[0].isdigit() and int(vlan_konfig_zeile[:4].strip()) != 1:
+                    vlan_nummer: str = ""
+                    vlan_name: str = ""
+                    parts = vlan_konfig_zeile.split()  # Zeile an Leerzeichen teilen
+                    vlan_nummer = parts[0]
+                    vlan_name = parts[1]
+                    f.write(f"vlan {vlan_nummer} \nname {vlan_name}\n")
+            else:
+                break
 
-    #-----------VTP------------
+        #-----------VTP------------
 
-    # Start-Lese-Index ermitteln
-    vtp_start_index = 0
-    for index, line in enumerate(zeilen):
-        if re.search(r"\*\* start vtp \*\*", line):
-            vtp_start_index = index + 1
-            break
+        # Start-Lese-Index ermitteln
+        vtp_start_index = 0
+        for index, line in enumerate(zeilen):
+            if re.search(r"\*\* start vtp \*\*", line):
+                vtp_start_index = index + 1
+                break
 
-    # Variablen für die benötigten Commands
-    vtp_version = ""
-    vtp_mode = ""
-    vtp_domain = ""
-    vtp_password = ""
+        # Variablen für die benötigten Commands
+        vtp_version = ""
+        vtp_mode = ""
+        vtp_domain = ""
+        vtp_password = ""
 
-    write_konfig = False # Es soll nur etwas rausgeschrieben werden, wenn auch eine Konfig existiert
-    vtp_commands_to_write = [] # Liste mit allen Commands, die in das Output-File geschrieben werden wenn die Variable 'write_konfig' True ist
+        write_konfig = False # Es soll nur etwas rausgeschrieben werden, wenn auch eine Konfig existiert
+        vtp_commands_to_write = [] # Liste mit allen Commands, die in das Output-File geschrieben werden wenn die Variable 'write_konfig' True ist
 
-    # VTP-Konfig parsen
-    for vtp_konfig_zeile in zeilen[vtp_start_index:]:
-        if ":" in vtp_konfig_zeile:
-            parts = vtp_konfig_zeile.split(":", 1)
+        # VTP-Konfig parsen
+        for vtp_konfig_zeile in zeilen[vtp_start_index:]:
+            if ":" in vtp_konfig_zeile:
+                parts = vtp_konfig_zeile.split(":", 1)
 
-            if parts[0].strip() == "VTP Operating Mode":
-                vtp_commands_to_write.append(f"vtp mode {parts[1].strip()}\n")
-            elif parts[0].strip() == "VTP version running":
-                vtp_commands_to_write.append(f"\nvtp version {parts[1].strip()}\n")
-            elif parts[0].strip() == "VTP Domain Name":
-                vtp_commands_to_write.append(f"vtp domain {parts[1].strip()}\n")
-            elif parts[0].strip() == "VTP Password":
-                vtp_commands_to_write.append(f"vtp password {parts[1].strip()}\n")
-            elif parts[0].strip() == "Configuration Revision":
-                if int(parts[1].strip()) == 1:
-                    write_konfig = True
-    if write_konfig: # wenn die Variable auf True gesetzt wurde, werden alle Elemente aus der Liste in das Output-File geschrieben
-        f.writelines(vtp_commands_to_write)
+                if parts[0].strip() == "VTP Operating Mode":
+                    vtp_commands_to_write.append(f"vtp mode {parts[1].strip()}\n")
+                elif parts[0].strip() == "VTP version running":
+                    vtp_commands_to_write.append(f"\nvtp version {parts[1].strip()}\n")
+                elif parts[0].strip() == "VTP Domain Name":
+                    vtp_commands_to_write.append(f"vtp domain {parts[1].strip()}\n")
+                elif parts[0].strip() == "VTP Password":
+                    vtp_commands_to_write.append(f"vtp password {parts[1].strip()}\n")
+                elif parts[0].strip() == "Configuration Revision":
+                    if int(parts[1].strip()) == 1:
+                        write_konfig = True
+        if write_konfig: # wenn die Variable auf True gesetzt wurde, werden alle Elemente aus der Liste in das Output-File geschrieben
+            f.writelines(vtp_commands_to_write)
 
 if __name__ == "__main__":
     parse()
