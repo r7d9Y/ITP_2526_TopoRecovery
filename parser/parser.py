@@ -7,13 +7,14 @@
 # _______\_\/______\_\/_____|_|______\_\/______
 
 import re
-from tokenize import blank_re
+
+
 def parse():
     with open("./raw_output_testdatei.txt", "r", encoding="utf-8") as f:
         zeilen = f.readlines()  # Liste mit alle Zeilen
 
     with open("output.txt", "w") as f:
-    #-----------VLAN------------
+        # -----------VLAN------------
 
         # VLAN-Nummern + Name ermitteln
         vlan_start_index = 0
@@ -26,7 +27,7 @@ def parse():
         run = zeilen[:end_run]
         run = re.sub(r"\n{2,}", "\n\n", re.sub(r"^ *!.*$", "", "\n".join(run), re.M))
 
-    #------
+        # ------
         # VLAN-Konfig erstellen und in das Output-File schreiben
         for vlan_konfig_zeile in zeilen[vlan_start_index:]:
             if not vlan_konfig_zeile[0].isdigit() or vlan_konfig_zeile[0].isdigit() and int(
@@ -41,7 +42,7 @@ def parse():
             else:
                 break
 
-        #-----------VTP------------
+        # -----------VTP------------
 
         # Start-Lese-Index ermitteln
         vtp_start_index = 0
@@ -50,8 +51,8 @@ def parse():
                 vtp_start_index = index + 1
                 break
 
-        write_konfig = False # Es soll nur etwas rausgeschrieben werden, wenn auch eine Konfig existiert
-        vtp_commands_to_write = [] # Liste mit allen Commands, die in das Output-File geschrieben werden wenn die Variable 'write_konfig' True ist
+        write_konfig = False  # Es soll nur etwas rausgeschrieben werden, wenn auch eine Konfig existiert
+        vtp_commands_to_write = []  # Liste mit allen Commands, die in das Output-File geschrieben werden wenn die Variable 'write_konfig' True ist
 
         # VTP-Konfig parsen
         for vtp_konfig_zeile in zeilen[vtp_start_index:]:
@@ -69,8 +70,9 @@ def parse():
                 elif parts[0].strip() == "Configuration Revision":
                     if int(parts[1].strip()) == 1:
                         write_konfig = True
-        if write_konfig: # wenn die Variable auf True gesetzt wurde, werden alle Elemente aus der Liste in das Output-File geschrieben
+        if write_konfig:  # wenn die Variable auf True gesetzt wurde, werden alle Elemente aus der Liste in das Output-File geschrieben
             f.writelines(vtp_commands_to_write)
+
 
 if __name__ == "__main__":
     parse()
