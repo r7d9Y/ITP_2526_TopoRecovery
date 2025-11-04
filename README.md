@@ -1,2 +1,2 @@
 # ITP_2526_TopoRecovery
-Skripts for Toporecovery
+Main git repository for the HTL3R ITP project TopoRecovery
