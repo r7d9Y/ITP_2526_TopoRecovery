@@ -1,0 +1,25 @@
+lBuilding configuration...
+r^Current configuration : \d+ bytes$
+r^version \d+.\d+$
+lservice timestamps debug datetime msec
+lservice timestamps log datetime msec
+lservice call-home
+lplatform qfp utilization monitor load 80
+lplatform punt-keepalive disable-kernel-core
+lplatform console serial
+lhostname Router
+lboot-start-marker
+lboot-end-marker
+lno aaa new-model
+llogin on-success log
+lsubscriber templating
+lmultilink bundle-name authenticated
+g4r^crypto pki trustpoint TP-self-signed-\d{8}$
+lenrollment selfsigned
+r^subject-name cn=IOS-Self-Signed-Certificate-\d{8}$
+lrevocation-check none
+r^rsakeypair TP-self-signed-\d{8}$
+g2lcrypto pki trustpoint SLA-TrustPoint
+lenrollment pkcs12
+lrevocation-check crl
+#TODO: CSR1000V fertig, rest machen

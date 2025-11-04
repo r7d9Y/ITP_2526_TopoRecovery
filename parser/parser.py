@@ -7,14 +7,13 @@
 # _______\_\/______\_\/_____|_|______\_\/______
 
 import re
-from tokenize import blank_re
+
+
 def parse():
     with open("./raw_output_testdatei.txt", "r", encoding="utf-8") as f:
         zeilen = f.readlines()  # Liste mit alle Zeilen
 
     with open("output.txt", "w") as f:
-
-
 
         # VLAN-Nummern + Name ermitteln
         vlan_start_index = 0
@@ -22,10 +21,11 @@ def parse():
             if re.search(r"\*\* start vlan \*\*", line):
                 vlan_start_index = index
                 break
+
         # Code für das Bereinigen der running-config ...
-        end_run = vlan_start_index-2
+        end_run = vlan_start_index - 2
         run = zeilen[:end_run]
-        run = re.sub(r"^ *!.*$","","\n".join(run)).split("\n")
+        run = re.sub(r"\n{2,}", "\n\n", re.sub(r"^ *!.*$", "", "\n".join(run), re.M))
 
         # VLAN-Konfig parsen
         for vlan_konfig_zeile in zeilen[vlan_start_index:]:
@@ -41,8 +41,7 @@ def parse():
             else:
                 break
 
-
-        #VTP-Konfig parsen
+        # VTP-Konfig parsen
         vtp_start_index = 0
         for index, line in enumerate(zeilen):
             if re.search(r"\*\* start vtp \*\*", line):
@@ -74,6 +73,7 @@ def parse():
         f.write(f"vtp version {vtp_version}\n")
         f.write(f"vtp domain {vtp_domain}\n")
         f.write(f"vtp password {vtp_password}\n")
+
 
 if __name__ == "__main__":
     parse()
