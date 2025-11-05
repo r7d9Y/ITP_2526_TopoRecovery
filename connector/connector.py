@@ -181,6 +181,7 @@ class Connector:
         """
         Establishes a telnet connection to the device specified in the instance variables
         :returns: True if connection established successfully, False otherwise
+        :raise RuntimeError: if a connection is already established
         """
         # Prevent multiple connections
         if self._conn is not None:
@@ -211,6 +212,7 @@ class Connector:
         :param command: is the command string to send to the device
         :param expected_str: is the expected string to be found at the end of the output
         :return: is a boolean indicating if the expected string was found
+        :raise RuntimeError: if no connection is established
         """
         # ensure connection is established
         if self._conn is None:
@@ -227,6 +229,7 @@ class Connector:
         Sends a list of commands to the connected device and returns the combined output as a string
         :param commands: is a list of command strings to send to the device
         :return: is a string containing the combined output of all commands
+        :raise RuntimeError: if any command fails
         """
         output = ""
         for comm in commands:
