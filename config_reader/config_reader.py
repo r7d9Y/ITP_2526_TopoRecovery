@@ -16,17 +16,19 @@ class ConfigReader:
 
 
     def connect_to_devices(self):
-        for device in self._devices:
-            prop = self._devices[device]
-            for port in prop["port"]:
-                connection = connector.Connector(prop["device_type"], device, port, prop["username"], prop["password"])
+        for ip in self._devices:
+            for port in self._devices[ip]:
+                prop = self._devices[ip][port]
+                connection = connector.Connector(prop["device_ios"], ip, port, prop["username"], prop["password"])
                 connection.connect()
                 #TODO go into privilaged mode
-                for section in self._commands:
+                for section in self._commands[prop["device_type"]]:
                     section_responds = ""
-                    for command in self._commands[section]:
-                        prompts = self._commands[section]
-                        resp = connection.send_command_with_response(command)
+                    for command in self._commands[prop["device_type"]][section]:
+                        print(connection.conn)
+                        print(connection)
+                        prompt = connection.conn.find_prompt()
+                        resp = connection.send_command_with_response(command, expected_str=r'#', read_timeout=90)[:-len(prompt)]
                         if not resp[0]:
                             raise ArithmeticError("COMMAND_ERROR")
                         section_responds += resp[1]

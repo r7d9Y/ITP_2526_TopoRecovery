@@ -1,13 +1,12 @@
 {
   "devices": {
     "192.168.44.128": {
-      "device_type": "router",
-      "device_ios": "cisco_ios_telnet",
-      "username": "cisco",
-      "password": "cisco",
-      "port": [
-        5001
-      ]
+      "5018": {
+        "device_type": "switch",
+        "device_ios": "cisco_ios_telnet",
+        "username": "cisco",
+        "password": "cisco"
+      }
     }
   },
   "commands": {

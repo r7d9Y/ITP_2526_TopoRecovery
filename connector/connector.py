@@ -83,8 +83,9 @@ class Connector:
 
     @port.setter
     def port(self, port: int) -> None:
-        if not isinstance(port, int):
+        if not isinstance(port, (int, str)) and not (isinstance(port, str) and re.match(r'^(-?\d+)$', port)):
             raise ValueError(f'INVALID_PORT_FORMAT:{type(port)}')
+        port = int(port)
         if port < 0 or port > 65535:
             raise ValueError(f'PORT_OUT_OF_RANGE:{port}')
         self._device["port"] = port
@@ -136,22 +137,25 @@ class Connector:
             self._conn = ConnectHandler(**self.device)
             return True
         except Exception:
+            print(self.device)
             return False
 
 
-    def send_command_with_response(self, command: str) -> Tuple[bool, str]:
+    def send_command_with_response(self, command: str, expected_str: str = None, read_timeout: int = 10) -> Tuple[bool, str]:
         """
         Sends a command to the connected device and returns a tuple indicating success and the output in
+        :param expected_str: is the expected string to be found at the end of the output
+        :param read_timeout: how long the code waits for a responds before an exception is raised time in seconds
         :param command: is the command string to send to the device
         :return: (success: bool, output: str)
         """
-        output = self._conn.send_command(command)
+        output = self._conn.send_command(command, read_timeout=read_timeout, delay_factor=2, expect_string=expected_str, strip_prompt=True)
         # Check for invalid output
         if output.endswith("% Invalid input detected at '^' marker."):
             return False, output
         return True, output
 
-    def send_command(self, command: str, expected_str: str = None) -> bool:
+    def was_command_send_successfully(self, command: str, expected_str: str = None) -> bool:
         """
         Sends a command to the connected device and returns True if the parameter expected_str is found at the end of
         the output, False otherwise
@@ -169,7 +173,7 @@ class Connector:
         for comm in commands:
             response = self.send_command_with_response(comm)
             if not response[0]:
-                raise RuntimeError(f"Command failed:\n{comm}\n{comm[1]}")
+                raise RuntimeError(f"Command failed:\n{comm}\n{response[1]}")
             output += response[1]
         return output
 
