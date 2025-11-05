@@ -194,11 +194,11 @@ class Connector:
         """
         Sends a command to the connected device and returns a tuple indicating success and the output in
         :param expected_str: is the expected string to be found at the end of the output
-        :param read_timeout: how long the code waits for a responds before an exception is raised time in seconds
+        :param read_timeout: how long the code waits for a response before an exception is raised time in seconds
         :param command: is the command string to send to the device
         :return: (success: bool, output: str)
         """
-        output = self._conn.send_command(command, read_timeout=read_timeout, delay_factor=2, expect_string=expected_str, strip_prompt=True)
+        output = self._conn.send_command(command, read_timeout=read_timeout, delay_factor=2, expect_string=expected_str)
         # Check for invalid output
         if output.endswith("% Invalid input detected at '^' marker."):
             return False, output
