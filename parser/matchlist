@@ -1,74 +1,74 @@
 lBuilding configuration...
-r^Current configuration : \d+ bytes$
-r^version \d+.\d+$
+l^Current configuration : \d+ bytes$
+l^version \d+.\d+$
 lservice timestamps debug datetime msec
 lservice timestamps log datetime msec
 lservice call-home
 lplatform qfp utilization monitor load 80
 lplatform punt-keepalive disable-kernel-core
 lplatform console serial
-r^hostname (Router)|(Switch)$
+l^hostname (Router)|(Switch)$
 lboot-start-marker
 lboot-end-marker
 lno aaa new-model
 llogin on-success log
 lsubscriber templating
-r *crypto pki trustpoint TP-self-signed-\d{8}$\n *enrollment selfsigned\n *subject-name cn=IOS-Self-Signed-Certificate-\d{8}\n *revocation-check none\n *subject-name cn=IOS-Self-Signed-Certificate-\d{8}\n\n
-rcrypto pki trustpoint SLA-TrustPoint\n *enrollment pkcs12\n *revocation-check crl\n\n
-rcrypto pki certificate chain TP-self-signed-\d{8}\n *certificate self-signed \d{2}\n( *([0-9A-F]{8} ?){8}\n){25} *([0-9A-F]{8} ?){4}\n *quit
-rcrypto pki certificate chain SLA-TrustPoint\n *certificate ca \d{2}\n *( *([0-9A-F]{8} ?){8}\n){25} *[0-9A-F]{8} [0-9A-F]{2}\n *quit
-r^license udi pid CSR1000V sn [0-9A-Z]{11}$
+l *crypto pki trustpoint TP-self-signed-\d{8}$\n *enrollment selfsigned\n *subject-name cn=IOS-Self-Signed-Certificate-\d{8}\n *revocation-check none\n *subject-name cn=IOS-Self-Signed-Certificate-\d{8}\n\n
+lcrypto pki trustpoint SLA-TrustPoint\n *enrollment pkcs12\n *revocation-check crl\n\n
+lcrypto pki certificate chain TP-self-signed-\d{8}\n *certificate self-signed \d{2}\n( *([0-9A-F]{8} ?){8}\n){25} *([0-9A-F]{8} ?){4}\n *quit
+lcrypto pki certificate chain SLA-TrustPoint\n *certificate ca \d{2}\n *( *([0-9A-F]{8} ?){8}\n){25} *[0-9A-F]{8} [0-9A-F]{2}\n *quit
+l^license udi pid CSR1000V sn [0-9A-Z]{11}$
 ldiagnostic bootup level minimal
-r^memory free low-watermark processor \d{5}$
+l^memory free low-watermark processor \d{5}$
 lspanning-tree extend system-id
 lredundancy
-rinterface GigabitEthernet\d\n *no ip address\n *shutdown\n *negotiation auto\n *no mop enabled\n *no mop sysid\n\n
+linterface GigabitEthernet\d\n *no ip address\n *shutdown\n *negotiation auto\n *no mop enabled\n *no mop sysid\n\n
 lip forward-protocol nd
 lip http server
 lip http authentication local
 lip http secure-server
 lcontrol-plane
-rcall-home\n *contact-email-addr sch-smart-licensing@cisco.com\n *profile "CiscoTAC-1"\n *active\n *destination transport-method http\n\n
+lcall-home\n *contact-email-addr sch-smart-licensing@cisco.com\n *profile "CiscoTAC-1"\n *active\n *destination transport-method http\n\n
 lno service password-encryption
 lmmi polling-interval 60
 lno mmi auto-configure
 lno mmi pvc
 lmmi snmp-timeout 180
 lno ip icmp rate-limit unreachable
-lno ip domain lookup
+lno ip domain[- ]lookup
 lip cef
 lno ipv6 cef
 lredundancy
 lno cdp log mismatch duplex
 lip tcp synwait-time 5
-rinterface GigabitEthernet\d/\d\n *no ip address\n *shutdown\n *duplex auto\n *speed auto\n *media-type rj45\n\n
+linterface GigabitEthernet\d/\d\n *no ip address\n *shutdown\n *duplex auto\n *speed auto\n *media-type rj45\n\n
 lno ip http server
 lno ip http secure-server
 lipv6 ioam timestamp
-rbanner exec \^C\n\*{74}\n\* IOSv is strictly limited to use for evaluation, demonstration and IOS  \*\n\* education\. IOSv is provided as-is and is not supported by Cisco's {6}\*\n\* Technical Advisory Center\. Any use or disclosure, in whole or in part, \*\n\* of the IOSv Software or Documentation to any third party for any {7}\*\n\* purposes is expressly prohibited except as otherwise authorized by {5}\*\n\* Cisco in writing\. {54}\*\n\*{74}\^C
-rbanner login \^C\n\*{74}\n\* IOSv is strictly limited to use for evaluation, demonstration and IOS  \*\n\* education\. IOSv is provided as-is and is not supported by Cisco's {6}\*\n\* Technical Advisory Center\. Any use or disclosure, in whole or in part, \*\n\* of the IOSv Software or Documentation to any third party for any {7}\*\n\* purposes is expressly prohibited except as otherwise authorized by {5}\*\n\* Cisco in writing\. {54}\*\n\*{74}\^C
-rbanner incoming \^C\n\*{74}\n\* IOSv is strictly limited to use for evaluation, demonstration and IOS  \*\n\* education\. IOSv is provided as-is and is not supported by Cisco's {6}\*\n\* Technical Advisory Center\. Any use or disclosure, in whole or in part, \*\n\* of the IOSv Software or Documentation to any third party for any {7}\*\n\* purposes is expressly prohibited except as otherwise authorized by {5}\*\n\* Cisco in writing\. {54}\*\n\*{74}\^C
+lbanner exec \^C\n\*{74}\n\* IOSv is strictly limited to use for evaluation, demonstration and IOS  \*\n\* education\. IOSv is provided as-is and is not supported by Cisco's {6}\*\n\* Technical Advisory Center\. Any use or disclosure, in whole or in part, \*\n\* of the IOSv Software or Documentation to any third party for any {7}\*\n\* purposes is expressly prohibited except as otherwise authorized by {5}\*\n\* Cisco in writing\. {54}\*\n\*{74}\^C
+lbanner login \^C\n\*{74}\n\* IOSv is strictly limited to use for evaluation, demonstration and IOS  \*\n\* education\. IOSv is provided as-is and is not supported by Cisco's {6}\*\n\* Technical Advisory Center\. Any use or disclosure, in whole or in part, \*\n\* of the IOSv Software or Documentation to any third party for any {7}\*\n\* purposes is expressly prohibited except as otherwise authorized by {5}\*\n\* Cisco in writing\. {54}\*\n\*{74}\^C
+lbanner incoming \^C\n\*{74}\n\* IOSv is strictly limited to use for evaluation, demonstration and IOS  \*\n\* education\. IOSv is provided as-is and is not supported by Cisco's {6}\*\n\* Technical Advisory Center\. Any use or disclosure, in whole or in part, \*\n\* of the IOSv Software or Documentation to any third party for any {7}\*\n\* purposes is expressly prohibited except as otherwise authorized by {5}\*\n\* Cisco in writing\. {54}\*\n\*{74}\^C
 lno scheduler allocate
 lend
-rline (con)|(aux) 0\n  *exec-timeout 0 0\n *privilege level 15\n *logging synchronous\n\n
+lline (con)|(aux) 0\n  *exec-timeout 0 0\n *privilege level 15\n *logging synchronous\n\n
 lethernet lmi ce
 lmultilink bundle-name authenticated
 lservice compress-config
-rinterface GigabitEthernet\d/\d\n *negotiation auto\n\n
+linterface GigabitEthernet\d/\d\n *negotiation auto\n\n
 lip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr
 lip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr
 lspanning-tree mode pvst
-glcrypto pki trustpoint SLA-TrustPoint
+gcrypto pki trustpoint SLA-TrustPoint
 {
 lenrollment pkcs12
 lrevocation-check crl
 }
-glcall-home
+gcall-home
 {
 lcontact-email-addr sch-smart-licensing@cisco.com
-r *profile "CiscoTAC-1"\n *active\n *destination transport-method http\n
+l *profile "CiscoTAC-1"\n *active\n *destination transport-method http\n
 }
-gr^interface GigabitEthernet\d$
+g^interface GigabitEthernet\d$
 {
 lno ip address
 lshutdown
@@ -76,32 +76,32 @@ lnegotiation auto
 lno mop enabled
 lno mop sysid
 }
-grline (con)|(aux) 0
+gline (con)|(aux) 0
 {
 lexec-timeout 0 0
 lprivilege level 15
 llogging synchronous
 }
-glline vty 0 4
+gline vty 0 4
 {
 llogin
 ltransport input none
 }
-gr^crypto pki trustpoint TP-self-signed-\d{8}$
+g^crypto pki trustpoint TP-self-signed-\d{8}$
 {
 lenrollment selfsigned
-r^subject-name cn=IOS-Self-Signed-Certificate-\d{8}$
+l^subject-name cn=IOS-Self-Signed-Certificate-\d{8}$
 lrevocation-check none
-r^rsakeypair TP-self-signed-\d{8}$
+l^rsakeypair TP-self-signed-\d{8}$
 }
-gr^crypto pki trustpoint TP-self-signed-\d{8}$
+g^crypto pki trustpoint TP-self-signed-\d{8}$
 {
 lenrollment selfsigned
-r^subject-name cn=IOS-Self-Signed-Certificate-\d{8}$
+l^subject-name cn=IOS-Self-Signed-Certificate-\d{8}$
 lrevocation-check none
-r^rsakeypair TP-self-signed-\d{8}$
+l^rsakeypair TP-self-signed-\d{8}$
 }
-gr^interface GigabitEthernet\d/\d$
+g^interface GigabitEthernet\d/\d$
 {
 lno ip address
 lshutdown
