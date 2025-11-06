@@ -1,9 +1,5 @@
     CSR1000V 17.3
 
-
-
-
-
 Building configuration...
 
 Current configuration : 5967 bytes
@@ -39,7 +35,6 @@ crypto pki trustpoint TP-self-signed-92209241
 crypto pki trustpoint SLA-TrustPoint
  enrollment pkcs12
  revocation-check crl
-
 
 crypto pki certificate chain TP-self-signed-92209241
  certificate self-signed 01
@@ -103,9 +98,7 @@ license udi pid CSR1000V sn 9I88252AEM4
 diagnostic bootup level minimal
 memory free low-watermark processor 71464
 
-
 spanning-tree extend system-id
-
 
 redundancy
 
@@ -146,6 +139,7 @@ control-plane
 
 line con 0
  stopbits 1
+
 line vty 0 4
  login
  transport input ssh
@@ -159,9 +153,7 @@ call-home
 
 end
 
-
 IOSv 15.7
-
 
 Building configuration...
 
@@ -267,10 +259,12 @@ line con 0
  exec-timeout 0 0
  privilege level 15
  logging synchronous
+
 line aux 0
  exec-timeout 0 0
  privilege level 15
  logging synchronous
+
 line vty 0 4
  login
  transport input none
@@ -279,13 +273,7 @@ no scheduler allocate
 
 end
 
-
-
-
 IOSV 15.6
-
-
-
 
 Building configuration...
 
@@ -322,7 +310,6 @@ redundancy
 no cdp log mismatch duplex
 
 ip tcp synwait-time 5
-
 
 interface GigabitEthernet0/0
  no ip address
@@ -391,10 +378,12 @@ line con 0
  exec-timeout 0 0
  privilege level 15
  logging synchronous
+
 line aux 0
  exec-timeout 0 0
  privilege level 15
  logging synchronous
+
 line vty 0 4
  login
  transport input none
@@ -403,15 +392,7 @@ no scheduler allocate
 
 end
 
-
-
-
-
-
-
 IOSV 15.5
-
-
 
 Building configuration...
 
@@ -516,10 +497,12 @@ line con 0
  exec-timeout 0 0
  privilege level 15
  logging synchronous
+
 line aux 0
  exec-timeout 0 0
  privilege level 15
  logging synchronous
+
 line vty 0 4
  login
  transport input none
@@ -527,13 +510,9 @@ line vty 0 4
 no scheduler allocate
 
 end
-
-
-
 
 iosv 15.9 m6
 
-
 Building configuration...
 
 Current configuration : 3088 bytes
@@ -638,10 +617,12 @@ line con 0
  exec-timeout 0 0
  privilege level 15
  logging synchronous
+
 line aux 0
  exec-timeout 0 0
  privilege level 15
  logging synchronous
+
 line vty 0 4
  login
  transport input none
@@ -649,16 +630,9 @@ line vty 0 4
 no scheduler allocate
 
 end
-
-
-
-
 
 iosv 15.9 m4
 
-
-
-
 Building configuration...
 
 Current configuration : 3088 bytes
@@ -763,10 +737,12 @@ line con 0
  exec-timeout 0 0
  privilege level 15
  logging synchronous
+
 line aux 0
  exec-timeout 0 0
  privilege level 15
  logging synchronous
+
 line vty 0 4
  login
  transport input none
@@ -774,10 +750,6 @@ line vty 0 4
 no scheduler allocate
 
 end
-
-
-
-
 
 iosvl2
 
@@ -890,7 +862,9 @@ banner login ^C
 **************************************************************************^C
 
 line con 0
+
 line aux 0
+
 line vty 0 4
 
 end

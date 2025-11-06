@@ -12,7 +12,8 @@ import re
 def parse():
     with open("./raw_output_testdatei.txt", "r", encoding="utf-8") as f:
         zeilen = f.readlines()  # Liste mit alle Zeilen
-
+    with open("./matchlist", "r", encoding="utf-8") as f:
+        std = f.readlines()
     with open("output.txt", "w") as f:
         # -----------VLAN------------
 
@@ -22,11 +23,25 @@ def parse():
             if re.search(r"\*\* start vlan \*\*", line):
                 vlan_start_index = index
                 break
+
         # Code für das Bereinigen der running-config ...
         end_run = vlan_start_index - 2
-        run = zeilen[:end_run]
-        run = re.sub(r"\n{2,}", "\n\n", re.sub(r"^ *!.*$", "", "\n".join(run), re.M))
+        run = zeilen[1:end_run]
+        run="".join(s for s in run if s.strip() and not s.lstrip().startswith("!"))# idk was da bei den regexes abgeht, die machen iwas
+#        run = re.sub(r"(([\n\r]) *!.*)+", "\n", run, re.M)
+        run = re.sub(r"(((line)|(interface)|(router)).*)", r"\n\1", run, re.M)
+        run = re.sub(r"\n{2,}", "\n\n", run, re.M)
+        for i in range(len(std)):
+            line = std[i]
+            if not line.startswith("g"):
+                fc = line[0]
+                line = line[1:]
+                if fc == "l":
+                    line = re.escape(line)
+                re.sub(line, "", run)
 
+        del std
+        f.write(run)
         # ------
         # VLAN-Konfig erstellen und in das Output-File schreiben
         for vlan_konfig_zeile in zeilen[vlan_start_index:]:
