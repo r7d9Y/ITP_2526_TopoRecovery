@@ -64,11 +64,9 @@ interface GigabitEthernet0/0
  switchport trunk encapsulation dot1q
  switchport trunk native vlan 30
  switchport mode trunk
-
  negotiation auto
 !
 interface GigabitEthernet0/1
-
  switchport trunk allowed vlan 10,20,30
  switchport trunk encapsulation dot1q
  switchport trunk native vlan 30
@@ -115,7 +113,6 @@ interface GigabitEthernet1/3
 !
 interface GigabitEthernet2/0
  switchport access vlan 99
-
  switchport mode access
  shutdown
  negotiation auto

@@ -30,9 +30,7 @@ def parse():
         run = re.sub(r"\n{2,}", "\n\n", re.sub(r"(((line)|(interface)|(router)).*)", r"\n\1", re.sub(r"(([\n\r])\s*!.*)+", "\n", "".join(run), flags=re.M), flags=re.M), flags=re.M)
         for i in range(len(std)):
             line = std[i]
-            if line.startswith("l"):
-                line = line[1:]
-                run = re.sub(line, "", run, flags=re.M)
+            run = re.sub(line, "", run, flags=re.M)
 
         del std
         f.write(run)
