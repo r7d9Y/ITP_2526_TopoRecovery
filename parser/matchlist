@@ -1,112 +1,79 @@
-lBuilding configuration...
-l^Current configuration : \d+ bytes$
-l^version \d+.\d+$
-lservice timestamps debug datetime msec
-lservice timestamps log datetime msec
-lservice call-home
-lplatform qfp utilization monitor load 80
-lplatform punt-keepalive disable-kernel-core
-lplatform console serial
-l^hostname (Router)|(Switch)$
-lboot-start-marker
-lboot-end-marker
-lno aaa new-model
-llogin on-success log
-lsubscriber templating
-l *crypto pki trustpoint TP-self-signed-\d{8}$\n *enrollment selfsigned\n *subject-name cn=IOS-Self-Signed-Certificate-\d{8}\n *revocation-check none\n *subject-name cn=IOS-Self-Signed-Certificate-\d{8}\n\n
-lcrypto pki trustpoint SLA-TrustPoint\n *enrollment pkcs12\n *revocation-check crl\n\n
-lcrypto pki certificate chain TP-self-signed-\d{8}\n *certificate self-signed \d{2}\n( *([0-9A-F]{8} ?){8}\n){25} *([0-9A-F]{8} ?){4}\n *quit
-lcrypto pki certificate chain SLA-TrustPoint\n *certificate ca \d{2}\n *( *([0-9A-F]{8} ?){8}\n){25} *[0-9A-F]{8} [0-9A-F]{2}\n *quit
-l^license udi pid CSR1000V sn [0-9A-Z]{11}$
-ldiagnostic bootup level minimal
-l^memory free low-watermark processor \d{5}$
-lspanning-tree extend system-id
-lredundancy
-linterface GigabitEthernet\d\n *no ip address\n *shutdown\n *negotiation auto\n *no mop enabled\n *no mop sysid\n\n
-lip forward-protocol nd
-lip http server
-lip http authentication local
-lip http secure-server
-lcontrol-plane
-lcall-home\n *contact-email-addr sch-smart-licensing@cisco.com\n *profile "CiscoTAC-1"\n *active\n *destination transport-method http\n\n
-lno service password-encryption
-lmmi polling-interval 60
-lno mmi auto-configure
-lno mmi pvc
-lmmi snmp-timeout 180
-lno ip icmp rate-limit unreachable
-lno ip domain[- ]lookup
-lip cef
-lno ipv6 cef
-lredundancy
-lno cdp log mismatch duplex
-lip tcp synwait-time 5
-linterface GigabitEthernet\d/\d\n *no ip address\n *shutdown\n *duplex auto\n *speed auto\n *media-type rj45\n\n
-lno ip http server
-lno ip http secure-server
-lipv6 ioam timestamp
-lbanner exec \^C\n\*{74}\n\* IOSv is strictly limited to use for evaluation, demonstration and IOS  \*\n\* education\. IOSv is provided as-is and is not supported by Cisco's {6}\*\n\* Technical Advisory Center\. Any use or disclosure, in whole or in part, \*\n\* of the IOSv Software or Documentation to any third party for any {7}\*\n\* purposes is expressly prohibited except as otherwise authorized by {5}\*\n\* Cisco in writing\. {54}\*\n\*{74}\^C
-lbanner login \^C\n\*{74}\n\* IOSv is strictly limited to use for evaluation, demonstration and IOS  \*\n\* education\. IOSv is provided as-is and is not supported by Cisco's {6}\*\n\* Technical Advisory Center\. Any use or disclosure, in whole or in part, \*\n\* of the IOSv Software or Documentation to any third party for any {7}\*\n\* purposes is expressly prohibited except as otherwise authorized by {5}\*\n\* Cisco in writing\. {54}\*\n\*{74}\^C
-lbanner incoming \^C\n\*{74}\n\* IOSv is strictly limited to use for evaluation, demonstration and IOS  \*\n\* education\. IOSv is provided as-is and is not supported by Cisco's {6}\*\n\* Technical Advisory Center\. Any use or disclosure, in whole or in part, \*\n\* of the IOSv Software or Documentation to any third party for any {7}\*\n\* purposes is expressly prohibited except as otherwise authorized by {5}\*\n\* Cisco in writing\. {54}\*\n\*{74}\^C
-lno scheduler allocate
-lend
-lline (con)|(aux) 0\n  *exec-timeout 0 0\n *privilege level 15\n *logging synchronous\n\n
-lethernet lmi ce
-lmultilink bundle-name authenticated
-lservice compress-config
-linterface GigabitEthernet\d/\d\n *negotiation auto\n\n
-lip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr
-lip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr
-lspanning-tree mode pvst
-gcrypto pki trustpoint SLA-TrustPoint
-{
-lenrollment pkcs12
-lrevocation-check crl
-}
-gcall-home
-{
-lcontact-email-addr sch-smart-licensing@cisco.com
-l *profile "CiscoTAC-1"\n *active\n *destination transport-method http\n
-}
-g^interface GigabitEthernet\d$
-{
-lno ip address
-lshutdown
-lnegotiation auto
-lno mop enabled
-lno mop sysid
-}
-gline (con)|(aux) 0
-{
-lexec-timeout 0 0
-lprivilege level 15
-llogging synchronous
-}
-gline vty 0 4
-{
-llogin
-ltransport input none
-}
-g^crypto pki trustpoint TP-self-signed-\d{8}$
-{
-lenrollment selfsigned
-l^subject-name cn=IOS-Self-Signed-Certificate-\d{8}$
-lrevocation-check none
-l^rsakeypair TP-self-signed-\d{8}$
-}
-g^crypto pki trustpoint TP-self-signed-\d{8}$
-{
-lenrollment selfsigned
-l^subject-name cn=IOS-Self-Signed-Certificate-\d{8}$
-lrevocation-check none
-l^rsakeypair TP-self-signed-\d{8}$
-}
-g^interface GigabitEthernet\d/\d$
-{
-lno ip address
-lshutdown
-lduplex auto
-lspeed auto
-lmedia-type rj45
-lnegotiation auto
-}
+Building configuration...
+^Current configuration : \d+ bytes$
+^version \d+.\d+$
+service timestamps debug datetime msec
+service timestamps log datetime msec
+service call-home
+platform qfp utilization monitor load 80
+platform punt-keepalive disable-kernel-core
+platform console serial
+^hostname (Router)|(Switch)$
+boot-start-marker
+boot-end-marker
+no aaa new-model
+login on-success log
+subscriber templating
+ *crypto pki trustpoint TP-self-signed-\d{8}$\n *enrollment selfsigned\n *subject-name cn=IOS-Self-Signed-Certificate-\d{8}\n *revocation-check none\n *subject-name cn=IOS-Self-Signed-Certificate-\d{8}\n\n
+crypto pki trustpoint SLA-TrustPoint\n *enrollment pkcs12\n *revocation-check crl\n\n
+crypto pki certificate chain TP-self-signed-\d{8}\n *certificate self-signed \d{2}\n( *([0-9A-F]{8} ?){8}\n){25} *([0-9A-F]{8} ?){4}\n *quit
+crypto pki certificate chain SLA-TrustPoint\n *certificate ca \d{2}\n *( *([0-9A-F]{8} ?){8}\n){25} *[0-9A-F]{8} [0-9A-F]{2}\n *quit
+^license udi pid CSR1000V sn [0-9A-Z]{11}$
+diagnostic bootup level minimal
+^memory free low-watermark processor \d{5}$
+spanning-tree extend system-id
+redundancy
+interface GigabitEthernet\d\n *no ip address\n *shutdown\n *negotiation auto\n *no mop enabled\n *no mop sysid\n\n
+ip forward-protocol nd
+ip http server
+ip http authentication local
+ip http secure-server
+control-plane
+call-home\n *contact-email-addr sch-smart-licensing@cisco.com\n *profile "CiscoTAC-1"\n *active\n *destination transport-method http\n\n
+no service password-encryption
+mmi polling-interval 60
+no mmi auto-configure
+no mmi pvc
+mmi snmp-timeout 180
+no ip icmp rate-limit unreachable
+no ip domain[- ]lookup
+ip cef
+no ipv6 cef
+redundancy
+no cdp log mismatch duplex
+ip tcp synwait-time 5
+interface GigabitEthernet\d/\d\n *no ip address\n *shutdown\n *duplex auto\n *speed auto\n *media-type rj45\n\n
+no ip http server
+no ip http secure-server
+ipv6 ioam timestamp
+banner exec \^C\n\*{74}\n\* IOSv is strictly limited to use for evaluation, demonstration and IOS  \*\n\* education\. IOSv is provided as-is and is not supported by Cisco's {6}\*\n\* Technical Advisory Center\. Any use or disclosure, in whole or in part, \*\n\* of the IOSv Software or Documentation to any third party for any {7}\*\n\* purposes is expressly prohibited except as otherwise authorized by {5}\*\n\* Cisco in writing\. {54}\*\n\*{74}\^C
+banner login \^C\n\*{74}\n\* IOSv is strictly limited to use for evaluation, demonstration and IOS  \*\n\* education\. IOSv is provided as-is and is not supported by Cisco's {6}\*\n\* Technical Advisory Center\. Any use or disclosure, in whole or in part, \*\n\* of the IOSv Software or Documentation to any third party for any {7}\*\n\* purposes is expressly prohibited except as otherwise authorized by {5}\*\n\* Cisco in writing\. {54}\*\n\*{74}\^C
+banner incoming \^C\n\*{74}\n\* IOSv is strictly limited to use for evaluation, demonstration and IOS  \*\n\* education\. IOSv is provided as-is and is not supported by Cisco's {6}\*\n\* Technical Advisory Center\. Any use or disclosure, in whole or in part, \*\n\* of the IOSv Software or Documentation to any third party for any {7}\*\n\* purposes is expressly prohibited except as otherwise authorized by {5}\*\n\* Cisco in writing\. {54}\*\n\*{74}\^C
+no scheduler allocate
+end
+line (con)|(aux) 0\n  *exec-timeout 0 0\n *privilege level 15\n *logging synchronous\n\n
+ethernet lmi ce
+multilink bundle-name authenticated
+service compress-config
+interface GigabitEthernet\d/\d\n *negotiation auto\n\n
+ip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+ip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+spanning-tree mode pvst
+enrollment pkcs12
+revocation-check crl
+no ip address
+shutdown
+negotiation auto
+no mop enabled
+no mop sysid
+exec-timeout 0 0
+privilege level 15
+logging synchronous
+login
+transport input none
+no ip address
+shutdown
+duplex auto
+speed auto
+media-type rj45
+negotiation auto
+((line)|(interface)).*\n\n
