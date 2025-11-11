@@ -6,10 +6,13 @@
 #  ______/_/\/_____/_/\/___\\_\______/_/\/______
 # _______\_\/______\_\/_____|_|______\_\/______
 
+import logging
 import re
 
+logger = logging.getLogger(__name__)
+FORMAT = '%(asctime)s %(clientip)-15s %(user)-8s %(message)s'
 
-def parse():
+def parse(filename: str, ip: str, port: int):
     with open("../raw_output.txt", "r", encoding="utf-8") as f:
         zeilen = f.readlines()  # Liste mit alle Zeilen
     with open("./matchlist", "r", encoding="utf-8") as f:
@@ -30,10 +33,13 @@ def parse():
         run = re.sub(r"\n{2,}", "\n\n", re.sub(r"(((line)|(interface)|(router)).*)", r"\n\1", re.sub(r"(([\n\r])\s*!.*)+", "\n", "".join(run), flags=re.M), flags=re.M), flags=re.M)
         for i in range(len(std)):
             line = std[i]
-            run = re.sub(line, "", run, flags=re.M)
+            run = re.sub(line+"\n+", "\n", run, flags=re.M)
 
         del std
         f.write(run)
+
+        logging.info()
+
         # ------
         # VLAN-Konfig erstellen und in das Output-File schreiben
         for vlan_konfig_zeile in zeilen[vlan_start_index:]:
@@ -73,7 +79,7 @@ def parse():
                 elif parts[0].strip() == "VTP Password":
                     vtp_commands_to_write.append(f"vtp password {parts[1].strip()}\n")
                 elif parts[0].strip() == "Configuration Revision":
-                    if int(parts[1].strip()) == 1:
+                    if int(parts[1].strip()) > 0:
                         write_konfig = True
         if write_konfig:  # wenn die Variable auf True gesetzt wurde, werden alle Elemente aus der Liste in das Output-File geschrieben
             f.writelines(vtp_commands_to_write)
