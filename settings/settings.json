@@ -1,6 +1,6 @@
 {
   "devices": {
-    "192.168.44.128": {
+    "10.21.15.207": {
       "5018": {
         "device_type": "switch",
         "device_ios": "cisco_ios_telnet",
@@ -13,6 +13,9 @@
     "router": {
       "running": [
         "show running-config"
+      ],
+      "interface": [
+        "show ip interface brief"
       ]
     },
     "switch": {
@@ -23,8 +26,11 @@
         "show vlan brief"
       ],
       "vtp": [
-        "show vtp summary",
+        "show vtp status",
         "show vtp password"
+      ],
+      "interface": [
+        "show ip interface brief"
       ]
     }
   }
