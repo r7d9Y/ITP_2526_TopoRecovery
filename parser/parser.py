@@ -6,10 +6,13 @@
 #  ______/_/\/_____/_/\/___\\_\______/_/\/______
 # _______\_\/______\_\/_____|_|______\_\/______
 
+import logging
 import re
 
+logger = logging.getLogger(__name__)
+FORMAT = '%(asctime)s %(clientip)-15s %(user)-8s %(message)s'
 
-def parse():
+def parse(filename: str, ip: str, port: int):
     with open("../raw_output.txt", "r", encoding="utf-8") as f:
         zeilen = f.readlines()  # Liste mit alle Zeilen
     with open("./matchlist", "r", encoding="utf-8") as f:
@@ -34,6 +37,9 @@ def parse():
 
         del std
         f.write(run)
+
+        logging.info()
+
         # ------
         # VLAN-Konfig erstellen und in das Output-File schreiben
         for vlan_konfig_zeile in zeilen[vlan_start_index:]:
