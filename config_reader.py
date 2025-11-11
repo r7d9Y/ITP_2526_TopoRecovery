@@ -16,12 +16,12 @@ class ConfigReader:
     Reads the configuration file and connects to specified devices in settings.json.
     It gets their configs and writes them to specified location.
     """
-    def __init__(self, dest_path: str = "../raw_output.txt") -> None:
+    def __init__(self, dest_path: str = "./raw_output.txt") -> None:
         self._commands = None
         self._devices = None
         self._dest_path = dest_path
 
-    def read_settings(self, src: str = "../settings/settings.json") -> None:
+    def read_settings(self, src: str = "./settings.json") -> None:
         """
         Reads settings from given json file
         :param src: Path of settings json file
