@@ -73,7 +73,7 @@ def parse():
                 elif parts[0].strip() == "VTP Password":
                     vtp_commands_to_write.append(f"vtp password {parts[1].strip()}\n")
                 elif parts[0].strip() == "Configuration Revision":
-                    if int(parts[1].strip()) == 1:
+                    if int(parts[1].strip()) > 0:
                         write_konfig = True
         if write_konfig:  # wenn die Variable auf True gesetzt wurde, werden alle Elemente aus der Liste in das Output-File geschrieben
             f.writelines(vtp_commands_to_write)
