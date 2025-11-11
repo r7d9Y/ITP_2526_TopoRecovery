@@ -10,7 +10,6 @@ import logging
 import re
 
 logger = logging.getLogger(__name__)
-FORMAT = '%(asctime)s %(clientip)-15s %(user)-8s %(message)s'
 
 def parse(filename: str, ip: str, port: int):
     with open("raw_output.txt", "r", encoding="utf-8") as f:

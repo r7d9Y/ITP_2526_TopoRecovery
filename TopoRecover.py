@@ -13,7 +13,7 @@ def main():
                         format=FORMAT
                         )
     logger.info('Started')
-    parser.parse("test.test.test", "1.2.3.4", 80)
+    parser.parse("output.txt", "1.2.3.4", 80)
     logger.info('Finished')
 
 
