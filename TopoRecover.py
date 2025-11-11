@@ -1,5 +1,4 @@
-import parser.parser
-import config_reader.config_reader
+import parser
 import logging
 
 logger = logging.getLogger(__name__)
@@ -14,7 +13,7 @@ def main():
                         format=FORMAT
                         )
     logger.info('Started')
-    parser.parser.parse("test.test.test", "1.2.3.4", 80)
+    parser.parse("test.test.test", "1.2.3.4", 80)
     logger.info('Finished')
 
 

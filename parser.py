@@ -13,9 +13,9 @@ logger = logging.getLogger(__name__)
 FORMAT = '%(asctime)s %(clientip)-15s %(user)-8s %(message)s'
 
 def parse(filename: str, ip: str, port: int):
-    with open("../raw_output.txt", "r", encoding="utf-8") as f:
+    with open("raw_output.txt", "r", encoding="utf-8") as f:
         zeilen = f.readlines()  # Liste mit alle Zeilen
-    with open("./matchlist", "r", encoding="utf-8") as f:
+    with open("matchlist", "r", encoding="utf-8") as f:
         std = f.readlines()
     with open("output.txt", "w") as f:
         # -----------VLAN------------

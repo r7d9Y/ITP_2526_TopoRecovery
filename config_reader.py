@@ -6,7 +6,7 @@
 #  ______/_/\/_____/_/\/___\\_\______/_/\/______
 # _______\_\/______\_\/_____|_|______\_\/______
 
-from connector import connector
+import connector
 import json
 import logging
 logger = logging.getLogger(__name__)
