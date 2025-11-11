@@ -40,8 +40,6 @@ def parse():
             if not vlan_konfig_zeile[0].isdigit() or vlan_konfig_zeile[0].isdigit() and int(
                     vlan_konfig_zeile[:4].strip()) < 1001:
                 if vlan_konfig_zeile[0].isdigit() and int(vlan_konfig_zeile[:4].strip()) != 1:
-                    vlan_nummer: str = ""
-                    vlan_name: str = ""
                     parts = vlan_konfig_zeile.split()  # Zeile an Leerzeichen teilen
                     vlan_nummer = parts[0]
                     vlan_name = parts[1]
