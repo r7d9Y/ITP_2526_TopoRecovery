@@ -1,13 +1,13 @@
 Building configuration...
-^Current configuration : \d+ bytes$
-^version \d+.\d+$
+Current configuration : \d+ byte
+version \d+.\d+
 service timestamps debug datetime msec
 service timestamps log datetime msec
 service call-home
 platform qfp utilization monitor load 80
 platform punt-keepalive disable-kernel-core
 platform console serial
-^hostname (Router)|(Switch)$
+hostname (Router)|(Switch)
 boot-start-marker
 boot-end-marker
 no aaa new-model
@@ -17,9 +17,9 @@ subscriber templating
 crypto pki trustpoint SLA-TrustPoint\n *enrollment pkcs12\n *revocation-check crl\n
 crypto pki certificate chain TP-self-signed-\d{8}\n *certificate self-signed \d{2}\n( *([0-9A-F]{8} ?){8}\n){25} *([0-9A-F]{8} ?){4}\n *quit
 crypto pki certificate chain SLA-TrustPoint\n *certificate ca \d{2}\n *( *([0-9A-F]{8} ?){8}\n){25} *[0-9A-F]{8} [0-9A-F]{2}\n *quit
-^license udi pid CSR1000V sn [0-9A-Z]{11}$
+license udi pid CSR1000V sn [0-9A-Z]{11}
 diagnostic bootup level minimal
-^memory free low-watermark processor \d{5}$
+memory free low-watermark processor \d{5}
 spanning-tree extend system-id
 redundancy
 interface GigabitEthernet\d\n *no ip address\n *shutdown\n *negotiation auto\n *no mop enabled\n *no mop sysid\n
