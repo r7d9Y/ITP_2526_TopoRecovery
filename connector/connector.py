@@ -172,6 +172,7 @@ class Connector:
     def conn(self):
         return self._conn
 
+
     def connect(self) -> bool:
         """
         Establishes a telnet connection to the device specified in the instance variables
@@ -182,12 +183,10 @@ class Connector:
         if self._conn is not None:
             raise RuntimeError(f'CANNOT_ESTABLISH_MULTIPLE_CONNECTIONS_TO_DEVICE_AT:{self.ip}:{self.port}')
         # Establish connection
-        try:
-            self._conn = ConnectHandler(**self.device)
-            return True
-        except Exception:
-            print(self.device)
-            return False
+        self._conn = ConnectHandler(**self.device)
+        if self._conn is None:
+            raise ConnectionError(f'CONNECTION_FAILED_AT:{self.ip}:{self.port}')
+
 
 
     def send_command_with_response(self, command: str, expected_str: str = None, read_timeout: int = 10) -> Tuple[bool, str]:
