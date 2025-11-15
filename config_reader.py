@@ -5,18 +5,24 @@
 #   ______/ /\/_____/ /\__\\ \_\/____\/ /\_\/____
 #  ______/_/\/_____/_/\/___\\_\______/_/\/______
 # _______\_\/______\_\/_____|_|______\_\/______
+from pathlib import Path
 
 import connector
 import json
 import logging
 logger = logging.getLogger(__name__)
+from datetime import datetime
 
 class ConfigReader:
     """
     Reads the configuration file and connects to specified devices in settings.json.
     It gets their configs and writes them to specified location.
     """
-    def __init__(self, dest_path: str = "./raw_output.txt") -> None:
+    def __init__(self) -> None:
+        dest_path = Path(".\\raw_output")
+        if not dest_path.exists():
+            raise FileNotFoundError("'raw_output' directory does not exist in TopoRecovery")
+
         self._commands = None
         self._devices = None
         self._dest_path = dest_path
@@ -124,12 +130,13 @@ class ConfigReader:
                 try:
                     connection = connector.Connector(prop["device_ios"], ip, port, prop["username"], prop["password"])
                 except Exception as e:
+                    logging.warning(f"WARNING_SKIPPED_DEVICE")
                     #TODO logging: skipped x.x.x.x device
                     continue
 
                 connection.connect()
                 prompt = connection.conn.find_prompt()
-
+                t = datetime.now()
                 for section in self._commands[prop["device_type"]]:
                     section_responds = ""
                     for command in self._commands[prop["device_type"]][section]:
@@ -137,23 +144,27 @@ class ConfigReader:
                         if not resp[0]:
                             raise ArithmeticError("COMMAND_ERROR")
                         section_responds += resp[1].rstrip()[:-(len(prompt))]
-                    self.write_to_dest(section_responds, section)
+                    self.write_to_dest(f"{ip}_{port}-{t.year}_{t.month}_{t.day}-{t.hour}_{t.minute}_{t.second}_raw_config.txt", section_responds, section)
 
-    def write_to_dest(self, config: str, section: str) -> bool:
+    def write_to_dest(self, file_name: str, config: str, section: str) -> bool:
         """
-        Appends given string to specified destination path and surrounds the string with the section string, z.B.:\n
-        \*** run \***\n
-        hostname R1\n
-        \*** run \***\n
+        Appends given string to specified destination path and surrounds the string with the section string, z.B.:
+
+        *** *** *** run *** *** ***
+
+        hostname R1
+
+        *** *** *** run *** *** ***
+        :param file_name: name of the file to write to
         :param config: string to be appended to destination path
         :param section: string to mark beginning and end of section
         :return:
         """
-        with open(self._dest_path, "a") as dest:
+        with open(self._dest_path.joinpath(Path(file_name)), "a") as dest:
             dest.write(f"** start {section} **\n")
             dest.write(config)
             dest.write(f"\n** end {section} **\n")
 
 c = ConfigReader()
 c.read_settings()
-#c.connect_to_devices()
+c.connect_to_devices()
