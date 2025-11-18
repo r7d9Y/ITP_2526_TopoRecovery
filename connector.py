@@ -7,10 +7,18 @@
 # _______\_\/______\_\/_____|_|______\_\/______
 from datetime import datetime
 import re
+from multiprocessing import AuthenticationError
+from re import PatternError
 from typing import Tuple, List
-from netmiko import ConnectHandler
+from netmiko import ConnectHandler, NetMikoTimeoutException, NetMikoAuthenticationException
+
+import paramiko
+import socket
 from enum import Enum, auto
 import logging
+
+from paramiko.ssh_exception import SSHException
+
 logger = logging.getLogger(__name__)
 
 
@@ -65,10 +73,10 @@ class Connector:
         """
         # check that the device type is a string
         if not isinstance(device_type, str):
-            raise TypeError("ERROR_DEVICE_TYPE_MUST_BE_A_STRING")
+            raise TypeError(f"DEVICE_TYPE_TYPE_ERROR:'device_type' must be a string -> currently {type(device_type)}")
         # check that type ends with _telnet to ensure telnet device connection
         if not device_type.endswith("_telnet"):
-            raise ValueError("TYPE_MUST_END_WITH_:'_telnet'")
+            raise ValueError("DEVICE_TYPE_VALUE_ERROR:'device_type' must end with:'_telnet'")
         self._device["device_type"] = device_type
 
     @property
@@ -88,21 +96,22 @@ class Connector:
             # 'localhost', theses are seen as valid input for telnet connections
             if not re.match(r'^(((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.){3}(25[0-5]|(2[0-4]|1\d|[1-9]|)\d)$|localhost)',
                             ip):
-                raise ValueError(f'INVALID_IP_ADDRESS_FORMAT:{ip}')
+                raise ValueError(f'IP_VALUE_ERROR:invalid ip address format: {ip}')
             if ip != 'localhost':
                 # further check each octet is between 0 and 255
                 octets = ip.split('.')
                 # this should always be 4 due to the regex match above
                 for octet in octets:
                     if not 0 <= int(octet) <= 255:
-                        raise ValueError(f'INVALID_IP_ADDRESS_OCTET_RANGE:{ip}')
+                        raise ValueError(f'IP_OCTET_VALUE_ERROR:invalid ip octet range, must be between 0 and 255:{ip}')
                 # check for special IP addresses that are not allowed (unspecified, multicast, general broadcast)
                 if ip == '0.0.0.0' or (224 <= int(ip.split('.')[0]) <= 239) or ip == '255.255.255.255':
-                    raise ValueError(f'INVALID_IP_ADDRESS:{ip}')
+                    raise ValueError(f'INVALID_IP_ADDRESS: {ip} -> not allowd addresses: 0.0.0.0, first octet between 224 '
+                                     f'and 239, 255.255.255.255')
             self._device["ip"] = ip
             return
         # raise error if ip is not a string, which it should always be for working with netmiko
-        raise ValueError(f'INVALID_IP_ADDRESS_TYPE:{type(ip)}')
+        raise TypeError(f"IP_TYPE_ERROR: 'ip' must be a string -> currently: {type(ip)}")
 
     @property
     def port(self) -> int:
@@ -111,11 +120,11 @@ class Connector:
     @port.setter
     def port(self, port: int) -> None:
         if not isinstance(port, (int, str)) and not (isinstance(port, str) and re.match(r'^(-?\d+)$', port)):
-            raise ValueError(f'INVALID_PORT_FORMAT:{type(port)}')
+            raise TypeError(f'PORT_TYPE_ERROR:invalid port type -> currently: {type(port)}')
         port = int(port)
         # valid port range is 0-65535
         if port < 0 or port > 65535:
-            raise ValueError(f'PORT_OUT_OF_RANGE:{port}')
+            raise ValueError(f'PORT_VALUE_ERROR: port out of range, must be between 0 and 65535 -> currently: {port}')
         self._device["port"] = port
 
     @property
@@ -133,15 +142,16 @@ class Connector:
         :raise ValueError: if the username contains invalid characters or exceeds length limits
         """
         if not isinstance(username, str):
-            raise TypeError(f'INVALID_USERNAME_TYPE:{type(username)}')
+            raise TypeError(f'USERNAME_TYPE_ERROR: username must be a string -> currently: {type(username)}')
 
         # Regex allows alphanumeric characters and special characters . _ - @ + $ ~ ! % : / \ and a length of 0-64
-        username_pattern = r'^[A-Za-z0-9._\-@+$~!%:/\\]{0,64}$'
+        username_pattern = r'^[A-Za-z0-9._\-@+$~!%:/\\]{1,64}$'
         if username and re.fullmatch(username_pattern, username) is not None:
             self._device["username"] = username
 
         elif username is not None:
-            raise ValueError(f'INVALID_USERNAME_OR_LENGTH:{username}')
+            raise PatternError(f'USERNAME_PATTERN_ERROR: invalid username or length (between 0 and 64 Chars), '
+                               f'must match: {username_pattern} -> current username: {username}')
 
     @property
     def password(self) -> str:
@@ -157,11 +167,13 @@ class Connector:
         :raise ValueError: if the password contains invalid characters or exceeds length limits
         """
         if not isinstance(pwd, str):
-            raise TypeError(f'INVALID_PASSWORD_TYPE:{type(pwd)}')
+            raise TypeError(f'PASSWORD_TYPE_ERROR: password type must be a string -> currently:{type(pwd)}')
 
         # Password can be any printable ASCII character, length 0-128
-        if not re.match(r'^[\x20-\x7E]{0,128}$', pwd):
-            raise ValueError(f'INVALID_PASSWORD_OR_LENGTH:LENGTH:{len(pwd)}|pwd{pwd}')
+        pattern = r'^[\x20-\x7E]{0,128}$'
+        if not re.match(pattern, pwd):
+            raise ValueError(f'PASSWORD_VALUE_ERROR: invalid password or length, must match {pattern}'
+                             f' -> currently LENGTH:{len(pwd)}, pwd{pwd}')
 
         self._device["password"] = pwd
 
@@ -182,11 +194,24 @@ class Connector:
         """
         # Prevent multiple connections
         if self._conn is not None:
-            raise RuntimeError(f'CANNOT_ESTABLISH_MULTIPLE_CONNECTIONS_TO_DEVICE_AT:{self.ip}:{self.port}')
+            raise ConnectionError(f'CONNECTION_ERROR: cannot establish multiple connections to one device, at {self.ip}:{self.port}')
         # Establish connection
-        self._conn = ConnectHandler(**self.device)
-        if self._conn is None:
-            raise ConnectionError(f'CONNECTION_FAILED_AT:{self.ip}:{self.port}')
+        try:
+            self._conn = ConnectHandler(**self.device)
+        except NetMikoTimeoutException as e:
+            # Gerät nicht erreichbar / Timeout
+            raise TimeoutError('TIMEOUT_ERROR: device not reachable (Layer 8?)')
+        except NetMikoAuthenticationException as e:
+            # Falsche Credentials o.ä.
+            raise AuthenticationError(f'AUTHENTICATION_ERROR: {e}')
+        except paramiko.ssh_exception.SSHException as e:
+            raise SSHException(f'SSH_ERROR: {e}')
+        except (socket.timeout, socket.error, OSError) as e:
+            raise ConnectionError(f'TIMEOUT_ERROR: {e}')
+        except Exception as e:
+            # Fallback für alles andere
+            raise Exception(f'UNKNOWN_ERROR: {e}')
+
 
 
 
@@ -215,7 +240,7 @@ class Connector:
         """
         # ensure connection is established
         if self._conn is None:
-            raise RuntimeError("NO_CONNECTION_ESTABLISHED:connect()_NEEDS_TO_BE_CALLED_FIRST.")
+            raise RuntimeError("RUNTIME_ERROR: no current running connection, call connect() to establish connection")
 
         # capture the output to check for errors
         output = self._conn.send_command(command, expect_string=expected_str)
@@ -236,7 +261,7 @@ class Connector:
             response = self.send_command_with_response(comm)
             # if command failed, raise error even if other commands were successful before
             if not response[0]:
-                raise RuntimeError(f"COMMAND_FAILED:\n{comm}\n{response[1]}")
+                raise RuntimeError(f"RUNTIME_ERROR: command failed: \n{comm}\n{response[1]}")
             output += response[1] + "\n"
         return output
 
