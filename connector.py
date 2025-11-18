@@ -5,11 +5,13 @@
 #   ______/ /\/_____/ /\__\\ \_\/____\/ /\_\/____
 #  ______/_/\/_____/_/\/___\\_\______/_/\/______
 # _______\_\/______\_\/_____|_|______\_\/______
-
+from datetime import datetime
 import re
 from typing import Tuple, List
 from netmiko import ConnectHandler
 from enum import Enum, auto
+import logging
+logger = logging.getLogger(__name__)
 
 
 class ExecMode(Enum):
@@ -37,6 +39,7 @@ class Connector:
             self.username = username
             self.password = password
 
+
     def __repr__(self) -> str:
         """
         :return: representation of the Connector instance showing all device parameters
@@ -62,7 +65,7 @@ class Connector:
         """
         # check that the device type is a string
         if not isinstance(device_type, str):
-            raise TypeError("TYPE_MUST_BE_A_STRING")
+            raise TypeError("ERROR_DEVICE_TYPE_MUST_BE_A_STRING")
         # check that type ends with _telnet to ensure telnet device connection
         if not device_type.endswith("_telnet"):
             raise ValueError("TYPE_MUST_END_WITH_:'_telnet'")

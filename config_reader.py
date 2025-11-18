@@ -118,6 +118,11 @@ class ConfigReader:
                     if not isinstance(command, str):
                         raise TypeError(f"command must be of type str in ./settings.json")
 
+    def get_logging_str(self, ip, port):
+        t = datetime.now()
+        return f"{t.year}_{t.month}_{t.day}-{t.hour}_{t.minute}_{t.second}_{ip}:{port}"
+
+
     def connect_to_devices(self) -> None:
         """
         Connects to devices specified in settings.json file.
@@ -130,6 +135,7 @@ class ConfigReader:
                 try:
                     connection = connector.Connector(prop["device_ios"], ip, port, prop["username"], prop["password"])
                 except Exception as e:
+                    logging.error(f"{self.get_logging_str(ip, port)}--{e}")
                     logging.warning(f"WARNING_SKIPPED_DEVICE")
                     #TODO logging: skipped x.x.x.x device
                     continue
