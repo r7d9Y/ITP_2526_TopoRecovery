@@ -19,10 +19,10 @@ class ConfigReader:
     Reads the configuration file and connects to specified devices in settings.json.
     It gets their configs and writes them to specified location.
     """
-    def __init__(self) -> None:
-        dest_path = Path(".\\raw_output")
+    def __init__(self, dest_path: Path = Path(".\\raw_output"), setting_path: Path = Path("./settings.json")) -> None:
         dest_path.mkdir(exist_ok=True)
-
+        self._dest_path = dest_path
+        self._setting_path = setting_path
         self._commands = None
         self._devices = None
         self._dest_path = dest_path
@@ -33,7 +33,7 @@ class ConfigReader:
         :param src: Path of settings json file
         :return:
         """
-        src = Path("./settings.json")
+        src = self._setting_path
         if not src.exists():
             raise FileNotFoundError(f"FILE_NOT_FOUND: settings.json does not exist in {src.parent}")
         with open(src, "r", encoding="utf-8") as f:
@@ -41,7 +41,6 @@ class ConfigReader:
             self.setting_syntax_checker(data)
             self._devices = data["devices"]
             self._commands = data["commands"]
-            print(data)
 
 
 
@@ -55,71 +54,72 @@ class ConfigReader:
         :param data: settings.json read as string
         :return: None
         """
+        dPath = self._setting_path
         if "devices" not in data:
-            raise KeyError("KEY_ERROR: No devices defined in ./settings.json")
+            raise KeyError(f"KEY_ERROR: No devices defined in {dPath}")
         if "commands" not in data:
-            raise KeyError("KEY_ERROR:No commands defined in ./settings.json")
+            raise KeyError(f"KEY_ERROR:No commands defined in {dPath}")
         if not isinstance(data, dict):
-            raise TypeError(f"TYPE_ERROR: data must be of type dict in ./settings.json. Current: {type(data)}")
+            raise TypeError(f"TYPE_ERROR: data must be of type dict in {dPath}. Current: {type(data)}")
         devices = data["devices"]
         if not isinstance(devices, dict):
-            raise TypeError(f"TYPE_ERROR: 'devices' must be of type dict in ./settings.json. Current: {type(devices)}")
+            raise TypeError(f"TYPE_ERROR: 'devices' must be of type dict in {dPath}. Current: {type(devices)}")
         commands = data["commands"]
         if not isinstance(commands, dict):
-            raise TypeError(f"TYPE_ERROR: 'commands' must be of type dict in ./settings.json. Current: {type(commands)}")
+            raise TypeError(f"TYPE_ERROR: 'commands' must be of type dict in {dPath}. Current: {type(commands)}")
 
         for ip in devices:
             #IP-Adresse syntax checker
             if not isinstance(ip, str):
-                raise TypeError(f"TYPE_ERROR: IP-Address key mus be of type str in ./settings.json. Current: {type(ip)}")
+                raise TypeError(f"TYPE_ERROR: IP-Address key mus be of type str in {dPath}. Current: {type(ip)}")
             if not isinstance(devices[ip], dict):
-                raise TypeError(f"TYPE_ERROR: IP-Address value must be of type dict in ./settings.json. Current: {type(ip)}")
+                raise TypeError(f"TYPE_ERROR: IP-Address value must be of type dict in {dPath}. Current: {type(ip)}")
 
             for port in devices[ip]:
                 #Port syntax checker
                 if not isinstance(port, str):
-                    raise TypeError(f"TYPE_ERROR: Port key must be of type dict in ./settings.json. Current: {type(port)}")
+                    raise TypeError(f"TYPE_ERROR: Port key must be of type dict in {dPath}. Current: {type(port)}")
                 if not isinstance(devices[ip][port], dict):
-                    raise TypeError(f"TYPE_ERROR: Port value must be of type dict in ./settings.json. Current: {type(port)}")
+                    raise TypeError(f"TYPE_ERROR: Port value must be of type dict in {dPath}. Current: {type(port)}")
                 props = devices[ip][port]
                 #device_type syntax checker
                 if "device_type" not in props:
-                    raise KeyError("KEY_ERROR: No device_type defined in ./settings.json")
+                    raise KeyError(f"KEY_ERROR: No device_type defined in {dPath}")
                 if not isinstance(props["device_type"], str):
-                    raise TypeError("TYPE_ERROR: 'device_type' must be of type str in ./settings.json")
+                    raise TypeError(f"TYPE_ERROR: 'device_type' must be of type str in {dPath}")
                 if not props["device_type"] in ['switch', 'router']:
                     raise ValueError(f"VALUE_ERROR: Device type '{props["device_type"]}' is not supported")
                 #device_ios syntax checker
                 if "device_ios" not in props:
-                    raise KeyError("KEY_ERROR: No device_ios defined in ./settings.json")
+                    raise KeyError(f"KEY_ERROR: No device_ios defined in {dPath}")
                 if not isinstance(props["device_ios"], str):
-                    raise TypeError("TYPE_ERROR: 'device_ios' must be of type str in ./settings.json")
+                    raise TypeError(f"TYPE_ERROR: 'device_ios' must be of type str in {dPath}")
                 #username syntax checker
                 if "username" not in props:
-                    raise KeyError("KEY_ERROR: No username defined in ./settings.json, if not wanted, give it the value: None")
+                    raise KeyError(f"KEY_ERROR: No username defined in {dPath}, if not wanted, give it the value: None")
                 if not isinstance(props["username"], str):
-                    raise TypeError("TYPE_ERROR: 'username' must be of type str in ./settings.json")
+                    raise TypeError(f"TYPE_ERROR: 'username' must be of type str in {dPath}")
                 #password syntax checker
                 if "password" not in props:
-                    raise KeyError("KEY_ERROR: No password defined in ./settings.json, if not wanted, give it the value: None")
+                    raise KeyError(f"KEY_ERROR: No password defined in {dPath}, if not wanted, give it the value: None")
                 if not isinstance(props["password"], str):
-                    raise TypeError("TYPE_ERROR: 'password' must be of type str in ./settings.json")
+                    raise TypeError(f"TYPE_ERROR: 'password' must be of type str in {dPath}")
 
         if "router" not in commands:
-            raise KeyError("KEY_ERROR: Router Commands not found in ./settings.json")
+            raise KeyError(f"KEY_ERROR: Router Commands not found in {dPath}")
         if "switch" not in commands:
-            raise KeyError("KEY_ERROR: Switch Commands not found in ./settings.json")
+            raise KeyError(f"KEY_ERROR: Switch Commands not found in {dPath}")
         for device_commands in commands:
             device_section = commands[device_commands]
             #section syntax checker
             for section in device_section:
                 if not isinstance(device_section[section], list):
-                    raise TypeError(f"TYPE_ERROR: section value must be of type list in ./settings.json")
+                    raise TypeError(f"TYPE_ERROR: section value must be of type list in {dPath}")
 
                 #command syntax checker
                 for command in device_section[section]:
                     if not isinstance(command, str):
-                        raise TypeError(f"TYPE_ERROR: command must be of type str in ./settings.json")
+                        raise TypeError(f"TYPE_ERROR: command must be of type str in {dPath}")
 
     def get_logging_str(self, ip, port):
         t = datetime.now()
