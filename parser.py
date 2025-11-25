@@ -11,8 +11,8 @@ import re
 
 logger = logging.getLogger(__name__)
 
-def parse(filename: str, ip: str, port: int):
-    with open("raw_output.txt", "r", encoding="utf-8") as f:
+def parse(input_filename: str, ip: str, port: int):
+    with open(input_filename, "r", encoding="utf-8") as f:
         zeilen = f.readlines()  # Liste mit alle Zeilen
     with open("matchlist", "r", encoding="utf-8") as f:
         std = f.readlines()
@@ -37,9 +37,9 @@ def parse(filename: str, ip: str, port: int):
         del std
         f.write(run)
 
-        logging.info()
-
         # ------
+
+        found_vlan_config = False
         # VLAN-Konfig erstellen und in das Output-File schreiben
         for vlan_konfig_zeile in zeilen[vlan_start_index:]:
             if not vlan_konfig_zeile[0].isdigit() or vlan_konfig_zeile[0].isdigit() and int(
@@ -49,8 +49,13 @@ def parse(filename: str, ip: str, port: int):
                     vlan_nummer = parts[0]
                     vlan_name = parts[1]
                     f.write(f"vlan {vlan_nummer} \nname {vlan_name}\n")
+                    found_vlan_config = True
             else:
                 break
+        if not found_vlan_config:
+            logger.warning("WARNING_NO_VLAN_CONFIG_RECEIVED", extra={'ip': ip, 'port': port})
+        else:
+            logger.info(f"SUCCESS_VLAN_CONFIG_PARSED_SUCCESSFUL", extra={'ip': ip, 'port': port})
 
         # -----------VTP------------
 
@@ -80,8 +85,13 @@ def parse(filename: str, ip: str, port: int):
                 elif parts[0].strip() == "Configuration Revision":
                     if int(parts[1].strip()) > 0:
                         write_konfig = True
+                        logger.info(f"SUCCESS_VTP_CONFIG_PARSED_SUCCESSFUL", extra={'ip': ip, 'port': port})
+                    else:
+                        logger.warning(f"WARNING_NO_VTP_CONFIG_RECEIVED", extra={'ip': ip, 'port': port})
         if write_konfig:  # wenn die Variable auf True gesetzt wurde, werden alle Elemente aus der Liste in das Output-File geschrieben
             f.writelines(vtp_commands_to_write)
+
+        logger.info(f"SUCCESS_OUTPUT_FILE_SAVED_SUCCESSFUL", extra={'ip': ip, 'port': port})
 
 
 if __name__ == "__main__":
