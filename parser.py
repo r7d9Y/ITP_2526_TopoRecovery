@@ -36,6 +36,7 @@ def parse(input_filename: str, ip: str, port: int):
 
         del std
         f.write(run)
+        logger.info(f"SUCCESS_RUN_CONFIG_PARSED_SUCCESSFUL", extra={'ip': ip, 'port': port})
 
         # ------
 
