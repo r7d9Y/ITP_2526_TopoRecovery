@@ -3,7 +3,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-FORMAT = '_%(ip)-15s:%(port)s--%(message)s'
+FORMAT = '%(asctime)s_%(ip)s:%(port)s--%(message)s'
 DATE_TIME_FORMAT = '%Y:%m:%d_%H:%M:%S'
 
 
@@ -13,7 +13,7 @@ def main():
                         format=FORMAT
                         )
     logger.info('Started')
-    parser.parse("output.txt", "1.2.3.4", 80)
+    parser.parse("raw_output.txt", "1.2.3.4", 80)
     logger.info('Finished')
 
 
