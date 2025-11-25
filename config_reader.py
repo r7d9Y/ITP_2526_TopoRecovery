@@ -122,8 +122,18 @@ class ConfigReader:
                         raise TypeError(f"TYPE_ERROR: command must be of type str in {dPath}")
 
     def get_logging_str(self, ip, port):
+        """
+        gibt einen string zurück, der ein logging format entspricht:
+
+        2025:11:25_12:46:23_172.16.0.117:5018
+
+        :param ip:
+        :param port:
+        :return:
+        """
+        #2025:11:25_12:46:23_172.16.0.117:5018
         t = datetime.now()
-        return f"{t.year}_{t.month}_{t.day}-{t.hour}_{t.minute}_{t.second}_{ip}:{port}"
+        return f"{t.year}:{t.month}:{t.day}_{t.hour}:{t.minute}:{t.second}_{ip}:{port}"
 
 
     def connect_to_devices(self) -> None:
@@ -151,8 +161,12 @@ class ConfigReader:
                             section_responds += resp[1].rstrip()[:-(len(prompt))]
                         self.write_to_dest(f"{ip}_{port}-{t.year}_{t.month}_{t.day}-{t.hour}_{t.minute}_{t.second}_raw_config.txt", section_responds, section)
                 except Exception as e:
-                    logger.error(f"{self.get_logging_str(ip, port)}--{e}")
-                    logger.warning(f"WARNING_SKIPPED_DEVICE")
+                    logger.error(f"{e}", extra={'ip': ip, 'port': port})
+                    logger.warning(f"WARNING_SKIPPED_DEVICE", extra={'ip': ip, 'port': port})
+                    colorRed = "\033[31m"
+                    colorReset = "\033[0m"
+                    print(f"{colorRed}{self.get_logging_str(ip, port)}--{e}{colorReset}")
+                    print(f"{colorRed}{self.get_logging_str(ip, port)}--WARNING_SKIPPED_DEVICE{colorReset}")
                     continue
 
     def write_to_dest(self, file_name: str, config: str, section: str) -> bool:
@@ -174,6 +188,12 @@ class ConfigReader:
             dest.write(config)
             dest.write(f"\n** end {section} **\n")
 
-c = ConfigReader()
-c.read_settings()
-c.connect_to_devices()
+    def execute(self):
+        """
+        executes the basic commands for a functional config_reader.
+        It checks the setting syntax and throws an Error if it is wrong.
+        It then calls to read the setting file and connect to the specified devices and gets their configs.
+        :return:
+        """
+        self.read_settings()
+        self.connect_to_devices()
