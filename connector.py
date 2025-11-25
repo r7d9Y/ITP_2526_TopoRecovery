@@ -5,21 +5,14 @@
 #   ______/ /\/_____/ /\__\\ \_\/____\/ /\_\/____
 #  ______/_/\/_____/_/\/___\\_\______/_/\/______
 # _______\_\/______\_\/_____|_|______\_\/______
-from datetime import datetime
 import re
+import socket
+from enum import Enum, auto
 from multiprocessing import AuthenticationError
 from re import error as PatternError
 from typing import Tuple, List
-from netmiko import ConnectHandler, NetMikoTimeoutException, NetMikoAuthenticationException
 
-import paramiko
-import socket
-from enum import Enum, auto
-import logging
-
-from paramiko.ssh_exception import SSHException
-
-logger = logging.getLogger(__name__)
+from netmiko import ConnectHandler, NetMikoTimeoutException, NetMikoAuthenticationException, ConnectionException
 
 
 class ExecMode(Enum):
@@ -46,7 +39,6 @@ class Connector:
         if username and password:
             self.username = username
             self.password = password
-
 
     def __repr__(self) -> str:
         """
@@ -106,8 +98,9 @@ class Connector:
                         raise ValueError(f'IP_OCTET_VALUE_ERROR:invalid ip octet range, must be between 0 and 255:{ip}')
                 # check for special IP addresses that are not allowed (unspecified, multicast, general broadcast)
                 if ip == '0.0.0.0' or (224 <= int(ip.split('.')[0]) <= 239) or ip == '255.255.255.255':
-                    raise ValueError(f'INVALID_IP_ADDRESS: {ip} -> not allowd addresses: 0.0.0.0, first octet between 224 '
-                                     f'and 239, 255.255.255.255')
+                    raise ValueError(
+                        f'INVALID_IP_ADDRESS: {ip} -> not allowed addresses: 0.0.0.0, first octet between 224 '
+                        f'and 239, 255.255.255.255')
             self._device["ip"] = ip
             return
         # raise error if ip is not a string, which it should always be for working with netmiko
@@ -185,37 +178,41 @@ class Connector:
     def conn(self):
         return self._conn
 
-
     def connect(self) -> bool:
         """
         Establishes a telnet connection to the device specified in the instance variables
-        :returns: True if connection established successfully, False otherwise
+        :returns: True if connection established successfully
         :raise RuntimeError: if a connection is already established
+        :raise TimeoutError: if the device is not reachable
+        :raise AuthenticationError: if authentication fails
+        :raise ConnectionException: if a connection error occurs
+        :raise ConnectionError: if a timeout or socket error occurs
+        :raise Exception: for any other unknown errors
         """
         # Prevent multiple connections
         if self._conn is not None:
-            raise ConnectionError(f'CONNECTION_ERROR: cannot establish multiple connections to one device, at {self.ip}:{self.port}')
+            raise ConnectionError(
+                f'CONNECTION_ERROR: cannot establish multiple connections to one device, at {self.ip}:{self.port}')
         # Establish connection
         try:
             self._conn = ConnectHandler(**self.device)
-        except NetMikoTimeoutException as e:
+            return True
+        except NetMikoTimeoutException:
             # Gerät nicht erreichbar / Timeout
             raise TimeoutError('TIMEOUT_ERROR: device not reachable (Layer 8?)')
         except NetMikoAuthenticationException as e:
             # Falsche Credentials o.ä.
             raise AuthenticationError(f'AUTHENTICATION_ERROR: {e}')
-        except paramiko.ssh_exception.SSHException as e:
-            raise SSHException(f'SSH_ERROR: {e}')
+        except ConnectionException as e:
+            raise ConnectionException(f'CONNECTION_ERROR: {e}')
         except (socket.timeout, socket.error, OSError) as e:
             raise ConnectionError(f'TIMEOUT_ERROR: {e}')
         except Exception as e:
             # Fallback für alles andere
             raise Exception(f'UNKNOWN_ERROR: {e}')
 
-
-
-
-    def send_command_with_response(self, command: str, expected_str: str = None, read_timeout: int = 10) -> Tuple[bool, str]:
+    def send_command_with_response(self, command: str, expected_str: str = None, read_timeout: int = 10) -> Tuple[
+        bool, str]:
         """
         Sends a command to the connected device and returns a tuple indicating success and the output in
         :param expected_str: is the expected string to be found at the end of the output
@@ -269,10 +266,14 @@ class Connector:
         """
         Determines the current execution mode of the connected device based on the command prompt
         :return: is an ExecMode enumeration value containing the current execution mode
+        :raise RuntimeError: if unable to determine exec mode or no connection is established
         """
-        prompt = self.conn.find_prompt()
-        if re.match(r".+>", prompt):
-            return ExecMode.USER_EXEC
-        if re.match(r".+\)#", prompt):
-            return ExecMode.GLOBAL_EXEC
-        return ExecMode.PRIVILEGED_EXEC
+        try:
+            prompt = self.conn.find_prompt()
+            if re.match(r".+>", prompt):
+                return ExecMode.USER_EXEC
+            if re.match(r".+\)#", prompt):
+                return ExecMode.GLOBAL_EXEC
+            return ExecMode.PRIVILEGED_EXEC
+        except Exception:
+            raise RuntimeError("RUNTIME_ERROR: unable to determine exec mode, no connection established")
