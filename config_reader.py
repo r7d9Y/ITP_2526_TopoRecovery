@@ -151,8 +151,8 @@ class ConfigReader:
                             section_responds += resp[1].rstrip()[:-(len(prompt))]
                         self.write_to_dest(f"{ip}_{port}-{t.year}_{t.month}_{t.day}-{t.hour}_{t.minute}_{t.second}_raw_config.txt", section_responds, section)
                 except Exception as e:
-                    logging.error(f"{self.get_logging_str(ip, port)}--{e}")
-                    logging.warning(f"WARNING_SKIPPED_DEVICE")
+                    logger.error(f"{self.get_logging_str(ip, port)}--{e}")
+                    logger.warning(f"WARNING_SKIPPED_DEVICE")
                     continue
 
     def write_to_dest(self, file_name: str, config: str, section: str) -> bool:

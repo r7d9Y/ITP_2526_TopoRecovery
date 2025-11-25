@@ -8,7 +8,7 @@
 from datetime import datetime
 import re
 from multiprocessing import AuthenticationError
-from re import PatternError
+from re import error as PatternError
 from typing import Tuple, List
 from netmiko import ConnectHandler, NetMikoTimeoutException, NetMikoAuthenticationException
 
