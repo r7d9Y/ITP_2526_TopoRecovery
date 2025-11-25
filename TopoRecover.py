@@ -10,11 +10,12 @@ DATE_TIME_FORMAT = '%Y:%m:%d_%H:%M:%S'
 def main():
     logging.basicConfig(filename='log.txt',
                         datefmt=DATE_TIME_FORMAT,
-                        format=FORMAT
+                        format=FORMAT,
+                        level=logging.INFO
                         )
-    logger.info('Started')
+   # logger.info('Started')
     parser.parse("raw_output.txt", "1.2.3.4", 80)
-    logger.info('Finished')
+   # logger.info('Finished')
 
 
 if __name__ == '__main__':
