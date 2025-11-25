@@ -1,3 +1,4 @@
+import config_reader
 import parser
 import logging
 
@@ -14,6 +15,7 @@ def main():
                         level=logging.INFO
                         )
    # logger.info('Started')
+    config_reader.ConfigReader().execute()
     parser.parse("raw_output.txt", "1.2.3.4", 80)
    # logger.info('Finished')
 
