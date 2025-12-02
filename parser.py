@@ -12,6 +12,18 @@ import re
 logger = logging.getLogger(__name__)
 
 def parse(input_filename: str, ip: str, port: int):
+    """
+    :param input_filename: File mit der Konfiguration die geparsed wird
+    :param ip: IP Adresse des ausgelesen Geräts
+    :param port: der Port mit dem man auf das Gerät kommt
+
+    Der Code der Methode "parse", parsed ein raw Output-File in eine Konfiguration, die man genau so wieder ein zu eins auf ein Gerät rausspielen kann.
+    In dem File welches über input_filename übergeben wird steht beim Router und ein "show interface brief".
+    Beim Switch steht ergänzend zur running-config des ausgelesenen Geräts noch der Output von "show vlan brief", "show vtp status", "show vtp password" und "show ip interface brief".
+    Für die fertige Konfiguration wird ein Output-File erstellt, in der die Konfiguration steht.
+
+    """
+
     with open(input_filename, "r", encoding="utf-8") as f:
         zeilen = f.readlines()  # Liste mit alle Zeilen
     with open("matchlist", "r", encoding="utf-8") as f:
