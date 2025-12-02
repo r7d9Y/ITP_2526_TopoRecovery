@@ -29,7 +29,7 @@ def parse(input_filename: str, ip: str, port: int):
         zeilen = f.readlines()  # Liste mit alle Zeilen
     with open("matchlist", "r", encoding="utf-8") as f:
         std = f.readlines()
-    with open("output.txt", "w") as f:
+    with open(re.sub("raw_","",input_filename), "w") as f:
         # -----------VLAN------------
 
         # VLAN-Nummern + Name ermitteln
