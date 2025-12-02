@@ -1,4 +1,6 @@
+import re
 from pathlib import Path
+from re import Pattern
 
 import config_reader
 import json
@@ -239,32 +241,49 @@ def generate_settings_template(filename):
 
 @click.command()
 @click.option('--edit-settings', is_flag=True, help='Edit the settings file interactively')
+@click.option('--settings-path', metavar='FILENAME', help='Change path to use different settings file')
 @click.option('--generate-template', metavar='FILENAME', help='Generate a template settings file')
-
-def main(edit_settings, generate_template):
+def main(edit_settings, settings_path, generate_template):
     """
     initialises the logger and executes the config_reader and parser
     with the optional options
     :param edit_settings: set this parameter, to edit the settings file ./settings.json
     :param generate_template: set this parameter, to generate a template for a custom setting file
+    :param settings_path: set this parameter to change the path for the settings file to use
     :return:
     """
+    script_setting_path = DEFAULT_SETTINGS_FILE
+    if settings_path:
+        script_setting_path = Path(settings_path)
+        if not script_setting_path.exists():
+            sys.exit("Settings file not found")
     if generate_template:
         generate_settings_template(generate_template)
         sys.exit(0)
     if edit_settings:
-        edit_settings_interactive(DEFAULT_SETTINGS_FILE)
+        edit_settings_interactive(script_setting_path)
         sys.exit(0)
+
 
     logging.basicConfig(filename='log.txt',
                         datefmt=DATE_TIME_FORMAT,
                         format=FORMAT,
                         level=logging.INFO
                         )
-    # logger.info('Started')
+
     config_reader.ConfigReader().execute()
-    parser.parse("raw_output.txt", "1.2.3.4", 80)
-    # logger.info('Finished')
+
+    RAW_OUTPUT_PATH = Path('raw_output')
+    for raw_output_file in RAW_OUTPUT_PATH.glob("*_raw_config.txt"):
+        #checks if the name is in correct format
+        file_name = raw_output_file.name
+        p = re.compile(r"((\d{1,3}\.){3}\d{1,3})_(\d{4,5})-\d{4}(_\d{2}){2}-(\d{2}_){3}raw_config\.txt")
+        matches = p.match(file_name)
+        if len(matches.groups()) == 0:
+            continue
+        #parses raw_config file and deletes it afterward
+        parser.parse(raw_output_file, matches.group(1), matches.group(3))
+        raw_output_file.unlink()
 
 
 if __name__ == '__main__':
