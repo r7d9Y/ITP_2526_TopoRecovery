@@ -1,15 +1,13 @@
+import json
+import logging
 import re
+import sys
 from pathlib import Path
-from re import Pattern
+
+import click
 
 import config_reader
-import json
-import os
-import sys
-
 import parser
-import logging
-import click
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +15,7 @@ FORMAT = '%(asctime)s_%(ip)s:%(port)s--%(message)s'
 DATE_TIME_FORMAT = '%Y:%m:%d_%H:%M:%S'
 
 DEFAULT_SETTINGS_FILE = Path('./settings.json')
-
+RAW_OUTPUT_PATH = Path('raw_output')
 
 def indexed_choice(options, prompt_text):
     """
@@ -267,7 +265,6 @@ def main(edit_settings, settings_path, generate_template):
 
     config_reader.ConfigReader().execute()
 
-    RAW_OUTPUT_PATH = Path('raw_output')
     for raw_output_file in RAW_OUTPUT_PATH.glob("*_raw_config.txt"):
         #checks if the name is in correct format
         file_name = raw_output_file.name
