@@ -1,6 +1,7 @@
 Building configuration...
-Current configuration : \d+ byte
+Current configuration : \d+ bytes
 version \d+.\d+
+line aux 0\n(.|\n)*?\n\n
 service timestamps debug datetime msec
 service timestamps log datetime msec
 service call-home
@@ -50,7 +51,6 @@ banner login \^C\n\*{74}\n\* IOSv is strictly limited to use for evaluation, dem
 banner incoming \^C\n\*{74}\n\* IOSv is strictly limited to use for evaluation, demonstration and IOS  \*\n\* education\. IOSv is provided as-is and is not supported by Cisco's {6}\*\n\* Technical Advisory Center\. Any use or disclosure, in whole or in part, \*\n\* of the IOSv Software or Documentation to any third party for any {7}\*\n\* purposes is expressly prohibited except as otherwise authorized by {5}\*\n\* Cisco in writing\. {54}\*\n\*{74}\^C
 no scheduler allocate
 end
-line ((con)|(aux)) 0\n  *exec-timeout 0 0\n *privilege level 15\n *logging synchronous\n
 ethernet lmi ce
 multilink bundle-name authenticated
 service compress-config
@@ -65,15 +65,18 @@ shutdown
 negotiation auto
 no mop enabled
 no mop sysid
-exec-timeout 0 0
 privilege level 15
-logging synchronous
 login
 transport input none
 no ip address
 shutdown
-duplex auto
+duplex ((auto)|(half))
 speed auto
 media-type rj45
 negotiation auto
-((line)|(interface)).*\n
+((line)|(interface)).*\n\n
+upgrade fpd auto
+mgcp profile default
+gatekeeper
+transport preferred ssh
+stopbits 1

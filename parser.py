@@ -11,6 +11,7 @@ import re
 
 logger = logging.getLogger(__name__)
 
+
 def parse(input_filename: str, ip: str, port: int):
     with open(input_filename, "r", encoding="utf-8") as f:
         zeilen = f.readlines()  # Liste mit alle Zeilen
@@ -29,10 +30,13 @@ def parse(input_filename: str, ip: str, port: int):
         # Code für das Bereinigen der running-config ...
         end_run = vlan_start_index - 2
         run = zeilen[1:end_run]
-        run = re.sub(r"\n{2,}", "\n\n", re.sub(r"(((line)|(interface)|(router)).*)", r"\n\1", re.sub(r"(([\n\r])\s*!.*)+", "\n", "".join(run), flags=re.M), flags=re.M), flags=re.M)
+        run = re.sub(r"\n{2,}", "\n\n", re.sub(r"(((line)|(interface)|(router)).*)", r"\n\1",
+                                               re.sub(r"(([\n\r])\s*!.*)+", "\n", "".join(run), flags=re.M),
+                                               flags=re.M), flags=re.M)
         for i in range(len(std)):
             line = std[i]
-            run = re.sub(line+"\n+", "\n", run, flags=re.M)
+            hs = "^\\s*" + line + "+"
+            run = re.sub(hs, "\n", run, flags=re.M)
 
         del std
         f.write(run)
@@ -96,5 +100,5 @@ def parse(input_filename: str, ip: str, port: int):
 
 
 if __name__ == "__main__":
-    #parse()
+    parse("raw_output_testdatei.txt", "", 0)
     pass
