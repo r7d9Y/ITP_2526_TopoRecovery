@@ -1,0 +1,37 @@
+{
+  "devices": {
+    "172.16.0.117": {
+      "5018": {
+        "device_type": "switch",
+        "device_ios": "cisco_ios_telnet",
+        "username": "cisco",
+        "password": "cisco"
+      }
+    }
+  },
+  "commands": {
+    "router": {
+      "running": [
+        "show running-config"
+      ],
+      "interface": [
+        "show ip int brief"
+      ],
+      "ffr": [
+        "show new jojoj"
+      ]
+    },
+    "switch": {
+      "vlan": [
+        "show vlan brief"
+      ],
+      "vtp": [
+        "show vtp status",
+        "show vtp password"
+      ],
+      "interface": [
+        "show ip interface brief"
+      ]
+    }
+  }
+}
