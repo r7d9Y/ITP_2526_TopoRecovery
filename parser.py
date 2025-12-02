@@ -8,11 +8,12 @@
 
 import logging
 import re
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
 
-def parse(input_filename: str, ip: str, port: int):
+def parse(input_filename: Path, ip: str, port: int):
     """
     :param input_filename: File mit der Konfiguration die geparsed wird
     :param ip: IP Adresse des ausgelesen Geräts
@@ -29,7 +30,7 @@ def parse(input_filename: str, ip: str, port: int):
         zeilen = f.readlines()  # Liste mit alle Zeilen
     with open("matchlist", "r", encoding="utf-8") as f:
         std = f.readlines()
-    with open(re.sub("raw_","",input_filename), "w") as f:
+    with open(re.sub("raw_","", str(input_filename)), "w") as f:
         # -----------VLAN------------
 
         # VLAN-Nummern + Name ermitteln
