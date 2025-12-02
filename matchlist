@@ -80,3 +80,4 @@ mgcp profile default
 gatekeeper
 transport preferred ssh
 stopbits 1
+

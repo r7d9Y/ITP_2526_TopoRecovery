@@ -137,8 +137,6 @@ interface GigabitEthernet2/3
  negotiation auto
 !
 interface GigabitEthernet3/0
- switchport access vlan 99
- switchport mode access
  shutdown
  negotiation auto
 !

@@ -45,12 +45,22 @@ def parse(input_filename: str, ip: str, port: int):
         run = re.sub(r"\n{2,}", "\n\n", re.sub(r"(((line)|(interface)|(router)).*)", r"\n\1",
                                                re.sub(r"(([\n\r])\s*!.*)+", "\n", "".join(run), flags=re.M),
                                                flags=re.M), flags=re.M)
-        for i in range(len(std)):
-            line = std[i]
-            hs = "^\\s*" + line + "+"
-            run = re.sub(hs, "\n", run, flags=re.M)
-
+        for i in std:
+            run = re.sub("^\\s*" + i + "+", "\n", run, flags=re.M)
         del std
+
+        # Hinzufügen von no shuts
+        intc = "".join(zeilen[zeilen.index("** start interface **\n") + 1:])
+        ints = re.findall("interface .*", run)
+        for i in ints:
+            r = ""
+            iname = re.sub(r"interface (.*)", r"\1", i)
+            if intc[intc.index(iname) + 50] == "u":
+                r = i + "\nno shutdown\n"
+            if not re.search(i+r"\n\n", run):
+                r=i+"\n"
+            run = re.sub(i + "\n", r, run)
+
         f.write(run)
         logger.info(f"SUCCESS_RUN_CONFIG_PARSED_SUCCESSFUL", extra={'ip': ip, 'port': port})
 
@@ -112,5 +122,5 @@ def parse(input_filename: str, ip: str, port: int):
 
 
 if __name__ == "__main__":
-    parse("raw_output_testdatei.txt", "", 0)
+    parse("raw_output.txt", "", 0)
     pass
