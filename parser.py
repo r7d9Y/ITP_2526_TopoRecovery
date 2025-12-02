@@ -119,8 +119,3 @@ def parse(input_filename: str, ip: str, port: int):
             f.writelines(vtp_commands_to_write)
 
         logger.info(f"SUCCESS_OUTPUT_FILE_SAVED_SUCCESSFUL", extra={'ip': ip, 'port': port})
-
-
-if __name__ == "__main__":
-    parse("raw_output.txt", "", 0)
-    pass
