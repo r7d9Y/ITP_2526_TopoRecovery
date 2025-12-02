@@ -70,16 +70,6 @@ def edit_settings_interactive(settings_path):
         click.echo("Commands updated and saved.")
 
 
-def main():
-    logging.basicConfig(filename='log.txt',
-                        datefmt=DATE_TIME_FORMAT,
-                        format=FORMAT,
-                        level=logging.INFO
-                        )
-   # logger.info('Started')
-    config_reader.ConfigReader().execute()
-    parser.parse("raw_output.txt", "1.2.3.4", 80)
-   # logger.info('Finished')
     elif section == 'devices':
         devices = settings.get('devices', {})
         click.echo("\nCurrent devices:")
@@ -167,6 +157,7 @@ def generate_settings_template(filename):
 @click.command()
 @click.option('--edit-settings', is_flag=True, help='Edit the settings file interactively')
 @click.option('--generate-template', metavar='FILENAME', help='Generate a template settings file')
+
 def main(edit_settings, generate_template):
     if generate_template:
         generate_settings_template(generate_template)
@@ -175,13 +166,15 @@ def main(edit_settings, generate_template):
         edit_settings_interactive(DEFAULT_SETTINGS_FILE)
         sys.exit(0)
 
-        logging.basicConfig(filename='log.txt',
-                            datefmt=DATE_TIME_FORMAT,
-                            format=FORMAT
-                            )
-        logger.info('Started')
-        parser.parse("output.txt", "1.2.3.4", 80)
-        logger.info('Finished')
+    logging.basicConfig(filename='log.txt',
+                        datefmt=DATE_TIME_FORMAT,
+                        format=FORMAT,
+                        level=logging.INFO
+                        )
+    # logger.info('Started')
+    config_reader.ConfigReader().execute()
+    parser.parse("raw_output.txt", "1.2.3.4", 80)
+    # logger.info('Finished')
 
 
 if __name__ == '__main__':
