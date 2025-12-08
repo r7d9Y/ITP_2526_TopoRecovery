@@ -1,0 +1,37 @@
+{
+  "devices": {
+    "<ip>": {
+      "<port>": {
+        "device_type": "",
+        "device_ios": "",
+        "username": "",
+        "password": ""
+      }
+    }
+  },
+  "commands": {
+    "router": {
+      "running": [
+        "show running-config"
+      ],
+      "interface": [
+        "show ip interface brief"
+      ]
+    },
+    "switch": {
+      "running": [
+        "show running-config"
+      ],
+      "vlan": [
+        "show vlan brief"
+      ],
+      "vtp": [
+        "show vtp status",
+        "show vtp password"
+      ],
+      "interface": [
+        "show ip interface brief"
+      ]
+    }
+  }
+}

@@ -1,3 +1,11 @@
+#       _____________________________________________
+#      __/___  ____/\__/ ______ \____/ /\____/ /\___
+#     ___\__/ /\_\_\/_/ /_____/ /\__/_/_/___/_/\/__
+#    ______/ /\/_____/ ____  __/\/__\/_  __/\_\/__
+#   ______/ /\/_____/ /\__\\ \_\/____\/ /\_\/____
+#  ______/_/\/_____/_/\/___\\_\______/_/\/______
+# _______\_\/______\_\/_____|_|______\_\/______
+
 import json
 import logging
 import re
@@ -8,14 +16,42 @@ import click
 
 import config_reader
 import parser
+from confer import Confer
 
 logger = logging.getLogger(__name__)
 
 FORMAT = '%(asctime)s_%(ip)s:%(port)s--%(message)s'
 DATE_TIME_FORMAT = '%Y:%m:%d_%H:%M:%S'
 
-DEFAULT_SETTINGS_FILE = Path('./settings.json')
+DEFAULT_GENERAL_SETTINGS_FILE = Path("settings/general_settings.json")
+FALLBACK_READER_SETTINGS = Path("settings/reader_settings.json")
+
 RAW_OUTPUT_PATH = Path('raw_output')
+
+
+def load_general_settings(path: Path = DEFAULT_GENERAL_SETTINGS_FILE) -> dict:
+    """
+    Loads the general settings from the specified JSON file. If the file cannot be loaded or is missing required keys,
+    fallback settings are used.
+    :param path: path to the general settings file
+    :returns dict: loaded settings
+    """
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        reader_settings_path = Path(data["reader_settings_path"])
+        version = str(data["version"])
+        return {
+            "reader_settings_path": reader_settings_path,
+            "version": version
+        }
+    except (FileNotFoundError, KeyError, json.JSONDecodeError) as e:
+        logger.warning(f"COULD_NOT_LOAD_GENERAL_SETTINGS:USING_FALLBACK_SETTINGS")
+        return {
+            "reader_settings_path": FALLBACK_READER_SETTINGS,
+            "version": "unknown"
+        }
+
 
 def indexed_choice(options, prompt_text):
     """
@@ -174,12 +210,12 @@ def handle_devices_section(settings: dict, settings_path: Path) -> bool:
     return True
 
 
-def edit_settings_interactive(settings_path=DEFAULT_SETTINGS_FILE):
+def edit_settings_interactive(settings_path) -> None:
     """
     handles the interaction to interactively edit the settings file of given path. This function is called if the
-    --edit_settings flag is set.
+    ``--edit_settings`` flag is set.
     :param settings_path: path to the settings file to edit
-    :return:
+    :return: ``None``
     """
     if not settings_path.exists():
         click.echo(f"Settings file {settings_path} not found.")
@@ -200,13 +236,21 @@ def edit_settings_interactive(settings_path=DEFAULT_SETTINGS_FILE):
             return
 
 
-def generate_settings_template(filename):
+def generate_reader_settings_template(filename,
+                                      template_path: Path = Path('settings/reader_settings_template.json')) -> bool:
     """
-    generates a template for a custom settings file in given path
-    :param filename:
-    :return:
+    Generates a settings template file at `filename`.
+    If `template_path` exists and contains valid JSON it will be used as the template, otherwise a built-in fallback template is written.
+
+    :param filename: destination filename for the generated settings file
+    :type filename: str or pathlib.Path
+    :param template_path: optional path to a JSON template to use instead of the builtin one
+    :type template_path: pathlib.Path
+    :return: True if the file was created successfully, False otherwise
+    :rtype: bool
     """
-    template = {
+    # builtin fallback template
+    fallback_template = {
         "devices": {
             "<ip>": {
                 "<port>": {
@@ -226,53 +270,129 @@ def generate_settings_template(filename):
             }
         }
     }
-    with open(filename, 'w') as f:
-        json.dump(template, f, indent=2)
-    click.echo(f"Template settings file written to {filename}")
+
+    # try to load template from file, otherwise use fallback
+    try:
+        template = fallback_template
+        tpl_path = Path(template_path)
+        if tpl_path.exists():
+            with open(tpl_path, 'r', encoding='utf-8') as tf:
+                template = json.load(tf)
+    except json.JSONDecodeError:
+        click.echo(
+            f"Template file `{template_path}` contains invalid JSON; using builtin fallback for reader settings template creation.")
+        template = fallback_template
+    except Exception as e:
+        click.echo(f"Error reading template `{template_path}`: {e}; using builtin fallback.")
+        template = fallback_template
+
+    # write the template to the destination
+    try:
+        dest_path = Path(filename)
+        dest_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(dest_path, 'w', encoding='utf-8') as f:
+            json.dump(template, f, indent=2)
+        click.echo(f"Template settings file written to `{filename}`")
+        return True
+    except Exception as e:
+        click.echo(f"Could not create template settings file at `{filename}`: {e}")
+        return False
+
+
+def upload_configuration_to_devices(conf_file: str, device_type: str, ip: str, port: int, username: str = None,
+                                    password: str = None) -> bool:
+    try:
+        confer = Confer(conf_file, device_type, ip, port, username, password)
+        confer.send_cmds()
+        return True
+    except Exception as e:
+        logger.error(f"ERROR_UPLOADING_CONFIGURATION_TO_DEVICES: {e}")
+        return False
 
 
 @click.command()
 @click.option('--edit-settings', is_flag=True, help='Edit the settings file interactively')
 @click.option('--settings-path', metavar='FILENAME', help='Change path to use different settings file')
 @click.option('--generate-template', metavar='FILENAME', help='Generate a template settings file')
-def main(edit_settings, settings_path, generate_template):
+@click.option('--upload-config', is_flag=True, help='Upload a configuration to devices')
+@click.option('--version', is_flag=True, help='Show program version and exit')
+def main(edit_settings, settings_path, generate_template, upload_config, version):
     """
     initialises the logger and executes the config_reader and parser
     with the optional options
-    :param edit_settings: set this parameter, to edit the settings file ./settings.json
+    :param edit_settings: set this parameter, to edit the settings file settings/reader_settings.json
     :param generate_template: set this parameter, to generate a template for a custom setting file
     :param settings_path: set this parameter to change the path for the settings file to use
-    :return:
+    :param upload_config: set this parameter to upload a configuration to devices
+    :param version: set this parameter to show the program version
+    :return: None
     """
-    script_setting_path = DEFAULT_SETTINGS_FILE
-    if settings_path:
-        script_setting_path = Path(settings_path)
-        if not script_setting_path.exists():
-            sys.exit("Settings file not found")
-    if generate_template:
-        generate_settings_template(generate_template)
-        sys.exit(0)
-    if edit_settings:
-        edit_settings_interactive(script_setting_path)
-        sys.exit(0)
 
-
-    logging.basicConfig(filename='log.txt',
+    # initializes the logger, the date format and format are defined at the top
+    logging.basicConfig(filename='logs/log.txt',
                         datefmt=DATE_TIME_FORMAT,
                         format=FORMAT,
                         level=logging.INFO
                         )
 
+    # load general settings
+    general = load_general_settings()
+    program_version = general["version"]
+    script_setting_path = general["reader_settings_path"]
+
+    # handles the version option
+    if version:
+        click.echo(f"TopoRecover version {program_version}")
+        sys.exit(0)
+
+    # modifies the default function of the script to use different settings file for reading the configurations
+    if settings_path:
+        script_setting_path = Path(settings_path)
+        if not script_setting_path.exists():
+            logger.warning("SETTINGS_FILE_NOT_FOUND")
+            sys.exit("Settings file not found")
+
+    # handles the generate template option
+    if generate_template:
+        successful = generate_reader_settings_template(generate_template)
+        if successful:
+            click.echo(f"TEMPLATE_SETTINGS_FILE_GENERATED")
+        else:
+            click.echo(f"COULD_NOT_GENERATE_TEMPLATE_SETTINGS_FILE")
+        sys.exit(0)
+
+    # handles the edit settings option
+    if edit_settings:
+        edit_settings_interactive(script_setting_path)
+        sys.exit(0)
+
+    # handles the upload configuration option
+    if upload_config:
+        # Prompt for all required parameters interactively
+        conf_file = click.prompt("Enter configuration file to upload")
+        device_type = click.prompt("Enter device type (e.g., router, switch)")
+        ip = click.prompt("Enter device IP address")
+        port = click.prompt("Enter device port", type=int)
+        username = click.prompt("Enter device username")
+        password = click.prompt("Enter device password", hide_input=True)
+        success = upload_configuration_to_devices(conf_file, device_type, ip, port, username, password)
+        if success:
+            click.echo("Configuration uploaded successfully.")
+        else:
+            click.echo("Failed to upload configuration.")
+        sys.exit(0)
+
+    # if the program reaches this point, it executes the config_reader and parser
     config_reader.ConfigReader().execute()
 
     for raw_output_file in RAW_OUTPUT_PATH.glob("*_raw_config.txt"):
-        #checks if the name is in correct format
+        # checks if the name is in correct format
         file_name = raw_output_file.name
         p = re.compile(r"((\d{1,3}\.){3}\d{1,3})_(\d{4,5})-\d{4}(_\d{2}){2}-(\d{2}_){3}raw_config\.txt")
         matches = p.match(file_name)
         if len(matches.groups()) == 0:
             continue
-        #parses raw_config file and deletes it afterward
+        # parses raw_config file and deletes it afterward
         parser.parse(raw_output_file, matches.group(1), matches.group(3))
         raw_output_file.unlink()
 

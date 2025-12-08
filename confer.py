@@ -33,30 +33,19 @@ class Confer:
     setup.
     send_cmds(): Connects to the device and sends commands sequentially.
     """
+
     def __init__(self, conf_file: str, device_type: str, ip: str, port: int, username: str = None,
                  password: str = None):
         """
         Initialize the class with necessary configuration for connecting to a device
         and loading command configurations.
 
-        Attributes:
-        cmds (list of str): List of commands read from the configuration file.
-        conn (connector.Connector): Connection object initialized with provided
-        device information.
-
-        Parameters:
-        conf_file: str
-            Path to the configuration file containing commands to execute.
-        device_type: str
-            Type of the device to connect to (e.g., "router", "switch").
-        ip: str
-            IP address of the target device.
-        port: int
-            Port number to establish the connection.
-        username: str, optional
-            Username for authentication with the device. Default is None.
-        password: str, optional
-            Password for authentication with the device. Default is None.
+        :param conf_file: Path to the configuration file containing commands
+        :param device_type: Type of the device (e.g., router, switch)
+        :param ip: IP address of the device
+        :param port: Port number for the connection
+        :param username: Username for authentication (optional)
+        :param password: Password for authentication (optional)
         """
         self.cmds = []
         with open(conf_file, "r", encoding="utf-8") as f:
@@ -68,17 +57,10 @@ class Confer:
         Executes a series of commands by establishing a connection and sending
         each command sequentially. If a command execution fails, logs a warning.
 
-        Raises
-        ------
-        Any exceptions during connection establishment or command execution
-        will propagate from the underlying connection implementation.
-
-        Returns
-        -------
-        None
+        :return: None
         """
         self.conn.connect()
         for cmd in self.cmds:
             r = self.conn.send_command_with_response(cmd)
             if not r[0]:
-                logger.warning(f"WARNING_COMMAND_FAILED: {r[1]}")
+                logger.warning(f"WARNING_COMMAND_FAILED_WHILE_UPLOADING: {r[1]}")
