@@ -29,7 +29,7 @@ def parse(input_filename: Path, ip: str, port: int):
 
     with open(input_filename, "r", encoding="utf-8") as f:
         zeilen = f.readlines()  # list with all lines of the file
-    with open("matchlist", "r", encoding="utf-8") as f:
+    with open("settings/matchlist", "r", encoding="utf-8") as f:
         std = f.readlines()
     with open(re.sub("raw_", "", str(input_filename)), "w") as f:
         # -----------VLAN------------
