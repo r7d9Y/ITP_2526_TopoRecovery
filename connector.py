@@ -278,3 +278,18 @@ class Connector:
             return ExecMode.PRIVILEGED_EXEC
         except Exception:
             raise RuntimeError("RUNTIME_ERROR: unable to determine exec mode, no connection established")
+
+    def go_to_priv_exec_mode(self):
+        """
+        From any mode goes into the privileged execution mode.
+        :return:
+        """
+        current_mode = self.get_exec_mode()
+        if current_mode == ExecMode.PRIVILEGED_EXEC:
+            return
+        if current_mode == ExecMode.GLOBAL_EXEC:
+            self.send_command_with_response("end", expected_str=".+#")
+        if current_mode == ExecMode.USER_EXEC:
+            self.send_command_with_response("enable", expected_str=".+#")
+
+

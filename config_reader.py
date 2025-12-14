@@ -148,6 +148,7 @@ class ConfigReader:
                     connection = connector.Connector(prop["device_ios"], ip, port, prop["username"], prop["password"])
 
                     connection.connect()
+                    connection.go_to_priv_exec_mode()
                     prompt = connection.conn.find_prompt()
                     t = datetime.now()
                     for section in self._commands[prop["device_type"]]:
@@ -169,7 +170,7 @@ class ConfigReader:
                     print(f"{colorRed}{self.get_logging_str(ip, port)}--WARNING_SKIPPED_DEVICE{colorReset}")
                     continue
 
-    def write_to_dest(self, file_name: str, config: str, section: str) -> bool:
+    def write_to_dest(self, file_name: str, config: str, section: str) -> None:
         """
         Appends given string to specified destination path and surrounds the string with the section string, z.B.:
 
