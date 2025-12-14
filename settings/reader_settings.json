@@ -1,8 +1,8 @@
 {
   "devices": {
     "172.16.0.117": {
-      "5018": {
-        "device_type": "switch",
+      "5000": {
+        "device_type": "router",
         "device_ios": "cisco_ios_telnet",
         "username": "cisco",
         "password": "cisco"
@@ -15,7 +15,7 @@
         "show running-config"
       ],
       "interface": [
-        "show ip interface brief"
+        "show ip int brief"
       ]
     },
     "switch": {
