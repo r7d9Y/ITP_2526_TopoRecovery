@@ -53,13 +53,13 @@ def parse(input_filename: Path, ip: str, port: int):
 
         # Hinzufügen von no shuts
         intc = "".join(zeilen[zeilen.index("** start interface **\n") + 1:])
-        ints = re.findall("interface .*", run)
+        ints = re.findall("^interface .*", run)
         for i in ints:
             r = ""
-            iname = re.sub(r"interface (.*)", r"\1", i)
+            iname = re.sub(r"^interface (.*)", r"\1", i)
             if intc[intc.index(iname) + 50] == "u":
                 r = i + "\nno shutdown\n"
-            if not re.search(i + r"\n\n", run):
+            elif not re.search(i + r"\n\n", run):
                 r = i + "\n"
             run = re.sub(i + "\n", r, run)
 
