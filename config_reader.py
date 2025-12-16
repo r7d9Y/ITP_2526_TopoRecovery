@@ -185,7 +185,6 @@ class ConfigReader:
         :return:
         """
         with open(self._dest_path.joinpath(Path(file_name)), "a") as dest:
-            print(self._dest_path.joinpath(Path(file_name)))
             dest.write(f"** start {section} **\n")
             dest.write(config)
             dest.write(f"\n** end {section} **\n")
