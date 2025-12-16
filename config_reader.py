@@ -159,7 +159,7 @@ class ConfigReader:
                                 raise RuntimeError("COMMAND_ERROR")
                             section_responds += resp[1].rstrip()[:-(len(prompt))]
                         self.write_to_dest(
-                            f"{ip}_{port}-{t.year}_{t.month}_{t.day}-{t.hour}_{t.minute}_{t.second}_raw_config.txt",
+                            f"{ip}_{port}-{t.year}_{t.month:02d}_{t.day:02d}-{t.hour:02d}_{t.minute:02d}_{t.second:02d}_raw_config.txt",
                             section_responds, section)
                 except Exception as e:
                     logger.error(f"{e}", extra={'ip': ip, 'port': port})
