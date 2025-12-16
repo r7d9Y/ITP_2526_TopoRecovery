@@ -22,7 +22,7 @@ class ConfigReader:
     It gets their configs and writes them to specified location.
     """
 
-    def __init__(self, dest_path: Path = Path(".\\raw_output"), setting_path: Path = Path(
+    def __init__(self, dest_path: Path = Path("./raw_output"), setting_path: Path = Path(
         "settings/reader_settings.json")) -> None:
         dest_path.mkdir(exist_ok=True)
         self._dest_path = dest_path
@@ -185,6 +185,7 @@ class ConfigReader:
         :return:
         """
         with open(self._dest_path.joinpath(Path(file_name)), "a") as dest:
+            print(self._dest_path.joinpath(Path(file_name)))
             dest.write(f"** start {section} **\n")
             dest.write(config)
             dest.write(f"\n** end {section} **\n")
