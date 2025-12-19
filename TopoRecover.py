@@ -45,12 +45,12 @@ def load_general_settings(path: Path = DEFAULT_GENERAL_SETTINGS_FILE) -> dict:
             "reader_settings_path": reader_settings_path,
             "version": version
         }
-    except (FileNotFoundError, KeyError, json.JSONDecodeError) as e:
-        logger.warning(f"COULD_NOT_LOAD_GENERAL_SETTINGS:USING_FALLBACK_SETTINGS")
-        return {
-            "reader_settings_path": FALLBACK_READER_SETTINGS,
-            "version": "unknown"
-        }
+    except FileNotFoundError:
+        raise FileNotFoundError(f"GENERAL_SETTINGS_FILE_NOT_FOUND: currently at {path}")
+    except json.JSONDecodeError:
+        raise json.JSONDecodeError("GENERAL_SETTINGS_FILE")
+    except KeyError:
+        raise KeyError("General settings file missing required keys: 'version', 'reader_settings_path'")
 
 
 def indexed_choice(options, prompt_text):
@@ -340,9 +340,12 @@ def main(edit_settings, settings_path, generate_template, upload_config, version
     program_version = general["version"]
     script_setting_path = general["reader_settings_path"]
 
+    if not Path(script_setting_path).exists():
+        raise FileNotFoundError("SCRIPT_SETTINGS_FILE_NOT_FOUND")
+
     # handles the version option
     if version:
-        click.echo(f"TopoRecover version {program_version}")
+        click.echo(f"TopoRecovery version {program_version}")
         sys.exit(0)
 
     # modifies the default function of the script to use different settings file for reading the configurations
@@ -383,7 +386,7 @@ def main(edit_settings, settings_path, generate_template, upload_config, version
         sys.exit(0)
 
     # if the program reaches this point, it executes the config_reader and parser
-    config_reader.ConfigReader().execute()
+    config_reader.ConfigReader(RAW_OUTPUT_PATH, script_setting_path).execute()
 
     for raw_output_file in RAW_OUTPUT_PATH.glob("*_raw_config.txt"):
         # checks if the name is in correct format
