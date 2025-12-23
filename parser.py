@@ -42,7 +42,7 @@ def parse(input_filename: Path, ip: str, port: int):
                 break
 
         # Code for cleaning up the running-config ...
-        end_run = vlan_start_index - 2
+        end_run = zeilen.index("** end running **\n")
         run = zeilen[1:end_run]
         run = re.sub(r"\n{2,}", "\n\n", re.sub(r"^(((line)|(interface)|(router)).*)", r"\n\1",
                                                re.sub(r"(([\n\r])\s*!.*)+", "\n", "".join(run), flags=re.M),
