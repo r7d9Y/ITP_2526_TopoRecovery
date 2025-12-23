@@ -44,7 +44,7 @@ def parse(input_filename: Path, ip: str, port: int):
         # Code for cleaning up the running-config ...
         end_run = vlan_start_index - 2
         run = zeilen[1:end_run]
-        run = re.sub(r"\n{2,}", "\n\n", re.sub(r"(((line)|(interface)|(router)).*)", r"\n\1",
+        run = re.sub(r"\n{2,}", "\n\n", re.sub(r"^(((line)|(interface)|(router)).*)", r"\n\1",
                                                re.sub(r"(([\n\r])\s*!.*)+", "\n", "".join(run), flags=re.M),
                                                flags=re.M), flags=re.M)
         for i in std:
@@ -53,10 +53,10 @@ def parse(input_filename: Path, ip: str, port: int):
 
         # Hinzufügen von no shuts
         intc = "".join(zeilen[zeilen.index("** start interface **\n") + 1:])
-        ints = re.findall("^interface .*", run)
+        ints = re.findall(r"^interface .*", run,flags=re.M)
         for i in ints:
             r = ""
-            iname = re.sub(r"^interface (.*)", r"\1", i)
+            iname = re.sub(r"^interface (.*)", r"\1", i,flags=re.M)
             if intc[intc.index(iname) + 50] == "u":
                 r = i + "\nno shutdown\n"
             elif not re.search(i + r"\n\n", run):
