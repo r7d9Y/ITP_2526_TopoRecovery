@@ -36,8 +36,8 @@ class Connector:
         self.device_type = device_type
         self.ip = ip
         self.port = port
-        # only set username and password if both are provided
-        if username and password:
+        # only set username and password if just the username is provided -> empty string pwd
+        if username:
             self.username = username
             self.password = password
 
