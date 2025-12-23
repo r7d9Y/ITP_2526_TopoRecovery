@@ -158,7 +158,11 @@ def handle_devices_section(settings: dict, settings_path: Path) -> bool:
 
     if action == 'add':
         # prompts each property for userinput
-        ip = click.prompt("Enter device IP")
+        while True:
+            ip = click.prompt("Enter device IP")
+            if re.match(r"^(((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.){3}(25[0-5]|(2[0-4]|1\d|[1-9]|)\d)$|localhost)", ip):
+                break
+            print("Wrong IP format, try again.")
         port = click.prompt("Enter device port")
         if port in devices.get(ip, {}):
             click.echo("Device already exists, use different port")
@@ -224,14 +228,14 @@ def edit_settings_interactive(settings_path) -> None:
     with open(settings_path, 'r') as f:
         settings = json.load(f)
 
-    section = click.prompt("Edit 'devices' or 'commands'?", type=click.Choice(['devices', 'commands']),
+    section = click.prompt("Edit 'devices' or 'commands'?", type=click.Choice(['devices', 'commands','d','c']),
                            show_choices=True)
 
     # if option command is taken
-    if section == 'commands':
+    if section == 'commands' or section == 'c':
         if not handle_command_section(settings, settings_path):
             return
-    elif section == 'devices':
+    elif section == 'devices' or section == 'd':
         if not handle_devices_section(settings, settings_path):
             return
 
