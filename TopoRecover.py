@@ -318,21 +318,17 @@ def upload_configuration_to_devices(conf_file: str, device_type: str, ip: str, p
 
 
 @click.command()
-@click.option('--edit-settings', is_flag=True, help='Edit the settings file interactively')
-@click.option('--settings-path', metavar='FILENAME', help='Change path to use different settings file')
-@click.option('--generate-template', metavar='FILENAME', help='Generate a template settings file')
-@click.option('--upload-config', is_flag=True, help='Upload a configuration to devices')
-@click.option('--version', is_flag=True, help='Show program version and exit')
+@click.option('--edit-settings', is_flag=True, help='Edit the settings file interactively.')
+@click.option('--settings-path', metavar='FILENAME', help='Change path to use different settings file.')
+@click.option('--generate-template', metavar='FILENAME', help='Generate a template settings file.')
+@click.option('--upload-config', is_flag=True, help='Upload a configuration to devices.')
+@click.option('--version', is_flag=True, help='Show program version and exit.')
 def main(edit_settings, settings_path, generate_template, upload_config, version):
     """
-    initialises the logger and executes the config_reader and parser
-    with the optional options
-    :param edit_settings: set this parameter, to edit the settings file settings/reader_settings.json
-    :param generate_template: set this parameter, to generate a template for a custom setting file
-    :param settings_path: set this parameter to change the path for the settings file to use
-    :param upload_config: set this parameter to upload a configuration to devices
-    :param version: set this parameter to show the program version
-    :return: None
+    This program runs the TopoRecovery tool, which retrieves configurations from network devices,
+    parses them and stores the read config. Logs are stored in the logs/log.txt file.
+    The program can be configured using a settings file, which can be edited interactively.
+    Alternatively, a template settings file can be generated for manual editing.
     """
 
     # initializes the logger, the date format and format are defined at the top
