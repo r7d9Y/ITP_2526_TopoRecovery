@@ -40,7 +40,9 @@ def load_general_settings(path: Path = DEFAULT_GENERAL_SETTINGS_FILE) -> dict:
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
         reader_settings_path = Path(data["reader_settings_path"])
-        version = str(data["version"])
+        if not isinstance(data["version"], str):
+            raise TypeError("TYPE_ERROR: value of 'version' must be a string'")
+        version = data["version"]
         return {
             "reader_settings_path": reader_settings_path,
             "version": version
@@ -51,7 +53,8 @@ def load_general_settings(path: Path = DEFAULT_GENERAL_SETTINGS_FILE) -> dict:
         raise json.JSONDecodeError("GENERAL_SETTINGS_FILE")
     except KeyError:
         raise KeyError("General settings file missing required keys: 'version', 'reader_settings_path'")
-
+    except TypeError as e:
+        raise TypeError(e)
 
 def indexed_choice(options, prompt_text):
     """
@@ -377,12 +380,12 @@ def main(edit_settings, settings_path, generate_template, upload_config, version
     if upload_config:
         # Prompt for all required parameters interactively
         conf_file = click.prompt("Enter configuration file to upload")
-        device_type = click.prompt("Enter device type (e.g., router, switch)")
+        device_ios = click.prompt("Enter device IOS (e.g.: cisco_ios_telnet)")
         ip = click.prompt("Enter device IP address")
         port = click.prompt("Enter device port", type=int)
         username = click.prompt("Enter device username")
         password = click.prompt("Enter device password", hide_input=True)
-        success = upload_configuration_to_devices(conf_file, device_type, ip, port, username, password)
+        success = upload_configuration_to_devices(conf_file, device_ios, ip, port, username, password)
         if success:
             click.echo("Configuration uploaded successfully.")
         else:
@@ -397,7 +400,7 @@ def main(edit_settings, settings_path, generate_template, upload_config, version
         file_name = raw_output_file.name
         p = re.compile(r"((\d{1,3}\.){3}\d{1,3})_(\d{4,5})-\d{4}(_\d{2}){2}-(\d{2}_){3}raw_config\.txt")
         matches = p.match(file_name)
-        if len(matches.groups()) == 0:
+        if matches is None:
             continue
         # parses raw_config file and deletes it afterward
         parser.parse(raw_output_file, matches.group(1), matches.group(3))
