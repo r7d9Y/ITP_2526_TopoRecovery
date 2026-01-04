@@ -156,7 +156,10 @@ class ConfigReader:
                         for command in self._commands[prop["device_type"]][section]:
                             resp = connection.send_command_with_response(command, expected_str=r'#', read_timeout=90)
                             if not resp[0]:
-                                raise RuntimeError("COMMAND_ERROR")
+                                colorRed = "\033[31m"
+                                colorReset = "\033[0m"
+                                print(f"{colorRed}{self.get_logging_str(ip, port)}--WARNING_COMMAND_ERROR: {resp[1]}{colorReset}")
+                                continue
                             section_responds += resp[1].rstrip()[:-(len(prompt))]
                         self.write_to_dest(
                             f"{ip}_{port}-{t.year}_{t.month:02d}_{t.day:02d}-{t.hour:02d}_{t.minute:02d}_{t.second:02d}_raw_config.txt",

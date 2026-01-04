@@ -223,8 +223,8 @@ class Connector:
         """
         output = self._conn.send_command(command, read_timeout=read_timeout, delay_factor=2, expect_string=expected_str)
         # Check for invalid output
-        if output.endswith("% Invalid input detected at '^' marker."):
-            return False, output
+        if "% Invalid input detected at '^' marker." in output:
+            return False, command
         return True, output
 
     def was_command_send_successfully(self, command: str, expected_str: str = None) -> bool:
