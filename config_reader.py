@@ -104,7 +104,8 @@ class ConfigReader:
                     raise KeyError(f"KEY_ERROR: No password defined in {dPath}, if not wanted, give it the value: None")
                 if not isinstance(props["password"], str):
                     raise TypeError(f"TYPE_ERROR: 'password' must be of type str in {dPath}")
-
+                if "secret" in props and not isinstance(props["secret"], str):
+                    raise TypeError(f"TYPE_ERROR: 'secret' must be of type str in {dPath}")
         if "router" not in commands:
             raise KeyError(f"KEY_ERROR: Router Commands not found in {dPath}")
         if "switch" not in commands:
@@ -149,7 +150,7 @@ class ConfigReader:
             for port in self._devices[ip]:
                 prop = self._devices[ip][port]
                 try:
-                    connection = connector.Connector(prop["device_ios"], ip, port, prop["username"], prop["password"])
+                    connection = connector.Connector(prop["device_ios"], ip, port, prop["username"], prop["password"], prop["secret"] if "secret" in prop else None)
 
                     connection.connect()
                     connection.go_to_priv_exec_mode()

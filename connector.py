@@ -13,7 +13,7 @@ from multiprocessing import AuthenticationError
 from re import error as PatternError
 from typing import Tuple, List
 
-from netmiko import ConnectHandler, NetMikoTimeoutException, NetMikoAuthenticationException, ConnectionException
+from netmiko import ConnectHandler, NetMikoTimeoutException, NetMikoAuthenticationException, ConnectionException, ReadTimeout
 
 
 class ExecMode(Enum):
@@ -30,16 +30,19 @@ class Connector:
     Connector class to manage telnet connections to (virtual) network devices using the Netmiko library
     """
 
-    def __init__(self, device_type: str, ip: str, port: int, username: str = None, password: str = None):
+    def __init__(self, device_type: str, ip: str, port: int, username: str = None, password: str = None, secret: str = None):
         self._conn = None
         self._device = {}
         self.device_type = device_type
         self.ip = ip
         self.port = port
+
         # only set username and password if just the username is provided -> empty string pwd
         if username:
             self.username = username
             self.password = password
+        if secret:
+            self.secret = secret
 
     def __repr__(self) -> str:
         """
@@ -50,6 +53,22 @@ class Connector:
 
     def __str__(self) -> str:
         return f"{self.device_type} -> {self.ip}:{self.port}"
+
+    @property
+    def secret(self) -> str:
+        return self._device["secret"]
+
+    @secret.setter
+    def secret(self, secret: str) -> None:
+        if not isinstance(secret, str):
+            raise TypeError(f'SECRET_TYPE_ERROR: password type must be a string -> currently: {type(secret)}')
+
+        # Password can be any printable ASCII character, length 0-128
+        pattern = r'^[\x20-\x7E]{0,128}$'
+        if not re.match(pattern, secret):
+            raise ValueError(f'SECRET_VALUE_ERROR: invalid secret or length, must match {pattern}'
+                             f' -> currently LENGTH: {len(secret)}, pwd: {secret}')
+        self._device["secret"] = secret
 
     @property
     def device_type(self) -> str:
@@ -289,6 +308,9 @@ class Connector:
         if current_mode == ExecMode.GLOBAL_EXEC:
             self.send_command_with_response("end", expected_str=".+#")
         if current_mode == ExecMode.USER_EXEC:
-            self.send_command_with_response("enable", expected_str=".+#")
-
+            try:
+                self.conn.enable()
+            except ReadTimeout:
+                raise RuntimeError(f"RUNTIME_ERROR: unable to enter privileged execution mode duo to missing " +
+                                   f"'secret' parameter in settings file")
 
