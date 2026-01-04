@@ -109,13 +109,17 @@ class ConfigReader:
             raise KeyError(f"KEY_ERROR: Router Commands not found in {dPath}")
         if "switch" not in commands:
             raise KeyError(f"KEY_ERROR: Switch Commands not found in {dPath}")
+        if not isinstance(commands["router"], dict):
+            raise TypeError(f"TYPE_ERROR: value of 'router' must be of type dict in {dPath}")
+        if not isinstance(commands["switch"], dict):
+            raise TypeError(f"TYPE_ERROR: value of 'switch' must be of type dict in {dPath}")
+
         for device_commands in commands:
             device_section = commands[device_commands]
             # section syntax checker
             for section in device_section:
                 if not isinstance(device_section[section], list):
                     raise TypeError(f"TYPE_ERROR: section value must be of type list in {dPath}")
-
                 # command syntax checker
                 for command in device_section[section]:
                     if not isinstance(command, str):
