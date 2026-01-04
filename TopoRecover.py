@@ -122,6 +122,60 @@ def handle_command_section(settings: dict, settings_path: Path) -> bool:
     click.echo("Commands updated and saved.")
     return True
 
+def is_valid_ip(ip: str) -> bool:
+    """
+    checks if the given ip is a valid IPv4 address
+    :param ip: IPv4 address
+    :return: True if valid IP, False otherwise
+    """
+    return bool(re.match(r"^(((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.){3}(25[0-5]|(2[0-4]|1\d|[1-9]|)\d)$|localhost)", ip))
+
+def is_valid_port(port: str) -> bool:
+    """
+    checks if the given port is a valid port
+    :param port: Port to check (0 <= port <= 65535)
+    :return: True if valid port, False otherwise
+    """
+    try:
+        port = int(port)
+        return 0 <= port <= 65535
+    except TypeError:
+        return False
+
+def is_valid_type(device_type: str) -> bool:
+    """
+    checks if the given type is valid
+    :param device_type: given type has to be in ['router', 'switch']
+    :return: True if valid, False otherwise
+    """
+    return device_type in ['router', 'switch']
+
+def is_valid_ios(device_ios: str) -> bool:
+    """
+    checks if the given IOS string could be valid
+    :param device_ios: ios string has to end with '_telnet'
+    :return: True if valid, False otherwise
+    """
+    return device_ios.endswith('_telnet')
+
+def is_valid_username(username: str) -> bool:
+    """
+    checks if the given username is valid, character wise
+    :param username: username has to match with ^[A-Za-z0-9._\-@+$~!%:/\\]{1,64}$ or it is 'None'
+    :return: True if valid, False otherwise
+    """
+    # Regex allows alphanumeric characters and special characters . _ - @ + $ ~ ! % : / \ and a length of 0-64
+    username_pattern = r'^[A-Za-z0-9._\-@+$~!%:/\\]{1,64}$'
+    return (username and re.fullmatch(username_pattern, username) is not None) or username is None
+
+def is_valid_pwd(pwd: str) -> bool:
+    """
+    checks if the given password is valid, character wise
+    :param pwd: pwd has to match with ^[\x21-\x7E]+$ or it is 'None'
+    :return: True if valid, False otherwise
+    """
+    pwd_pattern = r'^[\x21-\x7E]+$'
+    return (pwd and re.fullmatch(pwd_pattern, pwd) is not None) or pwd is None
 
 def handle_devices_section(settings: dict, settings_path: Path) -> bool:
     """
@@ -163,17 +217,37 @@ def handle_devices_section(settings: dict, settings_path: Path) -> bool:
         # prompts each property for userinput
         while True:
             ip = click.prompt("Enter device IP")
-            if re.match(r"^(((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.){3}(25[0-5]|(2[0-4]|1\d|[1-9]|)\d)$|localhost)", ip):
+            if is_valid_ip(ip):
                 break
             print("Wrong IP format, try again.")
-        port = click.prompt("Enter device port")
-        if port in devices.get(ip, {}):
-            click.echo("Device already exists, use different port")
-            return False
-        device_type = click.prompt("Enter device type (e.g., switch, router)")
-        device_ios = click.prompt("Enter device_ios (e.g., cisco_ios_telnet)")
-        username = click.prompt("Enter username")
-        password = click.prompt("Enter password", hide_input=True)
+        while True:
+            port = click.prompt("Enter device port")
+            if is_valid_port(port):
+                if port in devices.get(ip, {}):
+                    click.echo("Device already exists, use different port")
+                    continue
+                break
+            print("Wrong port range (0 <= port <= 65535), try again.")
+        while True:
+            device_type = click.prompt("Enter device type (e.g., switch, router)")
+            if is_valid_type(device_type):
+                break
+            print("Wrong device type [switch, router]")
+        while True:
+            device_ios = click.prompt("Enter device_ios (e.g., cisco_ios_telnet)")
+            if is_valid_ios(device_ios):
+                break
+            print("Wrong device_ios. Must end with '_telnet'. (e.g.: cisco_ios_telnet)")
+        while True:
+            username = click.prompt("Enter username")
+            if is_valid_username(username):
+                break
+            print("Not valid username. Must match: ^[A-Za-z0-9._@+$~!%:/\\-]{1,64}$")
+        while True:
+            password = click.prompt("Enter password", hide_input=True)
+            if is_valid_pwd(password):
+                break
+            print("No valid password entered, try again. Must match '^[\x21-\x7E]+$' or None")
         devices.setdefault(ip, {})[port] = {
             "device_type": device_type,
             "device_ios": device_ios,
