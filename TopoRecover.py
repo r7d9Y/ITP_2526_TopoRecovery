@@ -11,9 +11,8 @@ import logging
 import re
 import sys
 from pathlib import Path
-
 import click
-
+import shutil
 import config_reader
 import parser
 from confer import Confer
@@ -55,6 +54,7 @@ def load_general_settings(path: Path = DEFAULT_GENERAL_SETTINGS_FILE) -> dict:
         raise KeyError("General settings file missing required keys: 'version', 'reader_settings_path'")
     except TypeError as e:
         raise TypeError(e)
+
 
 def indexed_choice(options, prompt_text):
     """
@@ -122,6 +122,7 @@ def handle_command_section(settings: dict, settings_path: Path) -> bool:
     click.echo("Commands updated and saved.")
     return True
 
+
 def is_valid_ip(ip: str) -> bool:
     """
     checks if the given ip is a valid IPv4 address
@@ -129,6 +130,7 @@ def is_valid_ip(ip: str) -> bool:
     :return: True if valid IP, False otherwise
     """
     return bool(re.match(r"^(((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.){3}(25[0-5]|(2[0-4]|1\d|[1-9]|)\d)$|localhost)", ip))
+
 
 def is_valid_port(port: str) -> bool:
     """
@@ -142,6 +144,7 @@ def is_valid_port(port: str) -> bool:
     except TypeError:
         return False
 
+
 def is_valid_type(device_type: str) -> bool:
     """
     checks if the given type is valid
@@ -150,6 +153,7 @@ def is_valid_type(device_type: str) -> bool:
     """
     return device_type in ['router', 'switch']
 
+
 def is_valid_ios(device_ios: str) -> bool:
     """
     checks if the given IOS string could be valid
@@ -157,6 +161,7 @@ def is_valid_ios(device_ios: str) -> bool:
     :return: True if valid, False otherwise
     """
     return device_ios.endswith('_telnet')
+
 
 def is_valid_username(username: str) -> bool:
     """
@@ -168,6 +173,7 @@ def is_valid_username(username: str) -> bool:
     username_pattern = r'^[A-Za-z0-9._\-@+$~!%:/\\]{1,64}$'
     return (username and re.fullmatch(username_pattern, username) is not None) or username is None
 
+
 def is_valid_pwd(pwd: str) -> bool:
     """
     checks if the given password is valid, character wise
@@ -176,6 +182,7 @@ def is_valid_pwd(pwd: str) -> bool:
     """
     pwd_pattern = r'^[\x21-\x7E]+$'
     return (pwd and re.fullmatch(pwd_pattern, pwd) is not None) or pwd is None
+
 
 def handle_devices_section(settings: dict, settings_path: Path) -> bool:
     """
@@ -319,7 +326,7 @@ def edit_settings_interactive(settings_path) -> None:
     with open(settings_path, 'r') as f:
         settings = json.load(f)
 
-    section = click.prompt("Edit 'devices' or 'commands'?", type=click.Choice(['devices', 'commands','d','c']),
+    section = click.prompt("Edit 'devices' or 'commands'?", type=click.Choice(['devices', 'commands', 'd', 'c']),
                            show_choices=True)
 
     # if option command is taken
@@ -411,12 +418,17 @@ def upload_configuration_to_devices(conf_file: str, device_type: str, ip: str, p
 @click.option('--generate-template', metavar='FILENAME', help='Generate a template settings file.')
 @click.option('--upload-config', is_flag=True, help='Upload a configuration to devices.')
 @click.option('--version', is_flag=True, help='Show program version and exit.')
-def main(edit_settings, settings_path, generate_template, upload_config, version):
+@click.option('--clear-output', is_flag=True,
+              help='Delete all files in output/ & raw_output/ folders.')
+def main(edit_settings, settings_path, generate_template, upload_config, version, clear_output):
     """
     This program runs the TopoRecovery tool, which retrieves configurations from network devices,
     parses them and stores the read config. Logs are stored in the logs/log.txt file.
     The program can be configured using a settings file, which can be edited interactively.
     Alternatively, a template settings file can be generated for manual editing.
+
+    The Options will only do their specific task and then exit the program.
+
     """
 
     # initializes the logger, the date format and format are defined at the top
@@ -475,6 +487,19 @@ def main(edit_settings, settings_path, generate_template, upload_config, version
         else:
             click.echo("Failed to upload configuration.")
         sys.exit(0)
+
+    # handle the clear-output option
+    if clear_output:
+        # remove all files in output/ and raw_output/ directories
+        for folder in [Path('output'), Path('raw_output')]:
+            if folder.exists() and folder.is_dir():
+                for item in folder.iterdir():
+                    if item.is_file():
+                        item.unlink()
+                    elif item.is_dir():
+                        shutil.rmtree(item)
+        click.echo("Cleared output/ and raw_output/ folders.")
+        exit(0)
 
     # if the program reaches this point, it executes the config_reader and parser
     config_reader.ConfigReader(RAW_OUTPUT_PATH, script_setting_path).execute()
