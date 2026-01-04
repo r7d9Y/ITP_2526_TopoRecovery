@@ -31,7 +31,11 @@ def parse(input_filename: Path, ip: str, port: int):
         zeilen = f.readlines()  # list with all lines of the file
     with open("settings/matchlist", "r", encoding="utf-8") as f:
         std = f.readlines()
-    with open(re.sub("raw_", "", str(input_filename)), "w") as f:
+
+    output_path = Path(re.sub("raw_", "", str(input_filename)))
+    # Elternordner automatisch anlegen
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path, "w") as f:
         # -----------VLAN------------
 
         # gets vlan numbers and names
