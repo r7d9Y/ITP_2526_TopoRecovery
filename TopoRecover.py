@@ -161,7 +161,7 @@ def is_valid_ios(device_ios: str) -> bool:
 def is_valid_username(username: str) -> bool:
     """
     checks if the given username is valid, character wise
-    :param username: username has to match with ^[A-Za-z0-9._\-@+$~!%:/\\]{1,64}$ or it is 'None'
+    :param username: username has to match with ^[A-Za-z0-9._@+$~!%:/\\-]{1,64}$ or it is 'None'
     :return: True if valid, False otherwise
     """
     # Regex allows alphanumeric characters and special characters . _ - @ + $ ~ ! % : / \ and a length of 0-64
@@ -232,22 +232,22 @@ def handle_devices_section(settings: dict, settings_path: Path) -> bool:
             device_type = click.prompt("Enter device type (e.g., switch, router)")
             if is_valid_type(device_type):
                 break
-            print("Wrong device type [switch, router]")
+            print("Wrong device type. Has to be in [switch, router]")
         while True:
             device_ios = click.prompt("Enter device_ios (e.g., cisco_ios_telnet)")
             if is_valid_ios(device_ios):
                 break
             print("Wrong device_ios. Must end with '_telnet'. (e.g.: cisco_ios_telnet)")
         while True:
-            username = click.prompt("Enter username")
+            username = click.prompt("Enter username (Enter 'None' if not wanted)")
             if is_valid_username(username):
                 break
-            print("Not valid username. Must match: ^[A-Za-z0-9._@+$~!%:/\\-]{1,64}$")
+            print("Not valid username. Must match: ^[A-Za-z0-9._@+$~!%:/\\-]{1,64}$ or 'None'")
         while True:
-            password = click.prompt("Enter password", hide_input=True)
+            password = click.prompt("Enter password (Enter 'None' if not wanted)", hide_input=True)
             if is_valid_pwd(password):
                 break
-            print("No valid password entered, try again. Must match '^[\x21-\x7E]+$' or None")
+            print("No valid password entered, try again. Must match '^[\x21-\x7E]+$' or 'None'")
         devices.setdefault(ip, {})[port] = {
             "device_type": device_type,
             "device_ios": device_ios,
@@ -265,11 +265,25 @@ def handle_devices_section(settings: dict, settings_path: Path) -> bool:
         # asks the user for input until valid input
         while True:
             key = indexed_choice(editable_keys, "Select property to edit (or Ctrl+C to finish)")
-            if key in ['username', 'password']:
-                value = click.prompt(f"Enter new value for {key} (leave empty for blank)", default="",
-                                     show_default=False, hide_input=(key == 'password'))
-            else:
-                value = click.prompt(f"Enter new value for {key}", default=props.get(key, ""))
+            while True:
+                if key in ['username', 'password']:
+                    value = click.prompt(f"Enter new value for {key} (Enter 'None' if not wanted)", default="",
+                                         show_default=False, hide_input=(key == 'password'))
+                else:
+                    value = click.prompt(f"Enter new value for {key}", default=props.get(key, ""))
+                if key == 'username' and not is_valid_username(value):
+                    print("Not valid username. Must match: ^[A-Za-z0-9._@+$~!%:/\\-]{1,64}$ or 'None'")
+                    continue
+                if key == 'password' and not is_valid_pwd(value):
+                    print("No valid password entered, try again. Must match '^[\x21-\x7E]+$' or 'None'")
+                    continue
+                if key == 'device_type' and not is_valid_type(value):
+                    print("Wrong device type. Has to be in [switch, router]")
+                    continue
+                if key == 'device_ios' and not is_valid_ios(value):
+                    print("Wrong device_ios. Must end with '_telnet'. (e.g.: cisco_ios_telnet)")
+                    continue
+                break
             devices[ip][port][key] = value
             if not click.confirm("Edit another property for this device?", default=False):
                 break
