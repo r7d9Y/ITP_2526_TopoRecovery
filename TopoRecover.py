@@ -90,10 +90,12 @@ def handle_command_section(settings: dict, settings_path: Path) -> bool:
 
     # handle the action option
     if action == 'add':
-        cmd_type = click.prompt("Enter new command group name")
-        if cmd_type in commands.get(device_type, {}):
+        while True:
+            cmd_type = click.prompt("Enter new command group name")
+            if not cmd_type in commands.get(device_type, {}):
+                break
             click.echo("Group already exists")
-            return False
+
         new_cmds = click.prompt(f"Enter commands for {device_type} - {cmd_type} (comma separated)")
         # insert new command
         commands.setdefault(device_type, {})[cmd_type] = [cmd.strip() for cmd in new_cmds.split(",") if cmd.strip()]
@@ -103,7 +105,7 @@ def handle_command_section(settings: dict, settings_path: Path) -> bool:
             click.echo("No command groups to edit.")
             return False
         cmd_type = indexed_choice(group_names, f"Select command group index for {device_type}")
-        new_cmds = click.prompt(f"Enter new commands for {device_type} - {cmd_type} (comma separated)",
+        new_cmds = click.prompt(f"Overwrite commands of {device_type} - {cmd_type} (comma separated)",
                                 default=",".join(commands[device_type][cmd_type]))
         # insert new command
         commands[device_type][cmd_type] = [cmd.strip() for cmd in new_cmds.split(",") if cmd.strip()]
