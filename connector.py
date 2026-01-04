@@ -270,12 +270,11 @@ class Connector:
         :raise RuntimeError: if unable to determine exec mode or no connection is established
         """
         try:
-            prompt = self.conn.find_prompt()
-            if re.match(r".+>", prompt):
-                return ExecMode.USER_EXEC
-            if re.match(r".+\)#", prompt):
+            if self.conn.check_config_mode():
                 return ExecMode.GLOBAL_EXEC
-            return ExecMode.PRIVILEGED_EXEC
+            if self.conn.check_enable_mode():
+                return ExecMode.PRIVILEGED_EXEC
+            return ExecMode.USER_EXEC
         except Exception:
             raise RuntimeError("RUNTIME_ERROR: unable to determine exec mode, no connection established")
 
