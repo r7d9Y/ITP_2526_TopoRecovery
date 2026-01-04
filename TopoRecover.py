@@ -431,6 +431,21 @@ def main(edit_settings, settings_path, generate_template, upload_config, version
 
     """
 
+    # ensure logs directory and `logs/log.txt` exist and are usable
+    logs_dir = Path("logs")
+    try:
+        logs_dir.mkdir(parents=True, exist_ok=True)
+        log_file = logs_dir / "log.txt"
+        if not log_file.exists():
+            log_file.touch(mode=0o644, exist_ok=True)
+        # verify file is readable/writable
+        with open(log_file, "a+", encoding="utf-8") as f:
+            f.seek(0)
+            f.read(0)
+    except Exception as e:
+        click.echo(f"Could not create or access `logs/log.txt`: {e}")
+        sys.exit(1)
+
     # initializes the logger, the date format and format are defined at the top
     logging.basicConfig(filename='logs/log.txt',
                         datefmt=DATE_TIME_FORMAT,
