@@ -311,6 +311,6 @@ class Connector:
             try:
                 self.conn.enable()
             except ReadTimeout:
-                raise RuntimeError(f"RUNTIME_ERROR: unable to enter privileged execution mode duo to missing " +
+                raise RuntimeError(f"RUNTIME_ERROR: unable to enter privileged execution mode due to missing " +
                                    f"'secret' parameter in settings file")
 
