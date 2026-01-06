@@ -133,3 +133,6 @@ celerybeat.pid
 
 # SageMath parsed files
 *.sage.py
+
+#project test files
+settings/reader_settings_all.json
