@@ -48,26 +48,32 @@ def parse(input_filename: Path, ip: str, port: int):
         # Code for cleaning up the running-config ...
         end_run = zeilen.index("** end running **\n")
         run = zeilen[1:end_run]
-        run = re.sub(r"\n{2,}", "\n\n", re.sub(r"^(((line)|(interface)|(router)).*)", r"\n\1",
+        run = re.sub(r"\n{2,}", "\n\n", re.sub(r"^(((line)|(interface)|(router)|(ip access-list)).*)", r"\n\1",
                                                re.sub(r"(([\n\r])\s*!.*)+", "\n", "".join(run), flags=re.M),
                                                flags=re.M), flags=re.M)
+        run, grp = extract_groups(run)
         for i in std:
             run = re.sub("^\\s*" + i + "+", "\n", run, flags=re.M)
-        del std
-
-        # Hinzufügen von no shuts
         intc = "".join(zeilen[zeilen.index("** start interface **\n") + 1:])
-        ints = re.findall(r"^interface .*", run,flags=re.M)
-        for i in ints:
-            r = ""
-            iname = re.sub(r"^interface (.*)", r"\1", i,flags=re.M)
-            if intc[intc.index(iname) + 50] == "u":
-                r = i + "\nno shutdown\n"
-            elif not re.search(i + r"\n\n", run):
-                r = i + "\n"
-            run = re.sub(i + "\n", r, run)
-
+        if grp is not None:
+            for g in grp:
+                for l in g["lines"]:
+                    ls=l.strip()
+                    if ls == "" or ls in std:
+                        g["lines"].remove(l)
+                if g["header"].startswith("interface"):
+                    head = g["header"][10:]
+                    if intc[intc.index(head) + 50] == "u":
+                        g["lines"].append("no shutdown\n")
+                g["lines"].append("exit\n")
+                run += g["header"] + "\n"
+                run += "".join(g["lines"])
+        del std
+        del intc
+        print(run)
         f.write(run)
+        del run
+        del grp
         logger.info(f"SUCCESS_RUN_CONFIG_PARSED_SUCCESSFUL", extra={'ip': ip, 'port': port})
 
         # ------
@@ -125,3 +131,37 @@ def parse(input_filename: Path, ip: str, port: int):
             f.writelines(vtp_commands_to_write)
 
         logger.info(f"SUCCESS_OUTPUT_FILE_SAVED_SUCCESSFUL", extra={'ip': ip, 'port': port})
+
+
+GROUP_START_REGEXES = [re.compile(r"^router\s+(ospf)|(rip)|(bgp)"), re.compile(r"^interface .*"),
+    re.compile(r"^line (con)|(aux)|(vty) .*"), re.compile(r"^ip access-list (extended)|(standard) .*"),
+
+]
+
+
+def extract_groups(run: str):
+    lines = run.splitlines(keepends=True)
+    groups = []
+    clean_lines = []
+    current_group = None
+    for line in lines:
+        stripped = line.rstrip("\n")
+        if any(r.match(stripped) for r in GROUP_START_REGEXES):
+            current_group = {"header": stripped, "lines": [""]}
+            continue
+        if current_group:
+            if stripped.strip() == "":
+                current_group["lines"].append(line)
+                continue
+            if stripped.startswith(" "):
+                current_group["lines"].append(line)
+                continue
+            groups.append(current_group)
+            current_group = None
+            clean_lines.append(line)
+            continue
+        clean_lines.append(line)
+    if current_group:
+        groups.append(current_group)
+    clean_run = "".join(clean_lines)
+    return clean_run, groups
