@@ -150,7 +150,8 @@ class ConfigReader:
             for port in self._devices[ip]:
                 prop = self._devices[ip][port]
                 try:
-                    connection = connector.Connector(prop["device_ios"], ip, port, prop["username"], prop["password"], prop["secret"] if "secret" in prop else None)
+                    connection = connector.Connector(prop["device_ios"], ip, port, prop["username"], prop["password"],
+                                                     prop["secret"] if "secret" in prop else None)
 
                     connection.connect()
                     connection.go_to_priv_exec_mode()
@@ -163,15 +164,16 @@ class ConfigReader:
                             if not resp[0]:
                                 colorRed = "\033[31m"
                                 colorReset = "\033[0m"
-                                print(f"{colorRed}{self.get_logging_str(ip, port)}--WARNING_COMMAND_ERROR: {resp[1]}{colorReset}")
+                                print(
+                                    f"{colorRed}{self.get_logging_str(ip, port)}--WARNING_COMMAND_ERROR: {resp[1]}{colorReset}")
                                 continue
                             section_responds += resp[1].rstrip()[:-(len(prompt))]
                         self.write_to_dest(
                             f"{ip}_{port}-{t.year}_{t.month:02d}_{t.day:02d}-{t.hour:02d}_{t.minute:02d}_{t.second:02d}_raw_config.txt",
                             section_responds, section)
                 except Exception as e:
-                    logger.error(f"{e}", extra={'ip': ip, 'port': port})
-                    logger.warning(f"WARNING_SKIPPED_DEVICE", extra={'ip': ip, 'port': port})
+                    logger.error(f"{ip}:{port}--{e}")
+                    logger.warning(f"{ip}:{port}--WARNING_SKIPPED_DEVICE")
                     colorRed = "\033[31m"
                     colorReset = "\033[0m"
                     print(f"{colorRed}{self.get_logging_str(ip, port)}--{e}{colorReset}")
@@ -180,7 +182,7 @@ class ConfigReader:
 
     def write_to_dest(self, file_name: str, config: str, section: str) -> None:
         """
-        Appends given string to specified destination path and surrounds the string with the section string, z.B.:
+        Appends given string to specified destination path and surrounds the string with the section string, e.g.:
 
         *** *** *** run *** *** ***
 
