@@ -57,21 +57,31 @@ def parse(input_filename: Path, ip: str, port: int):
         intc = "".join(zeilen[zeilen.index("** start interface **\n") + 1:])
         if grp is not None:
             for g in grp:
-                for l in g["lines"]:
-                    ls=l.strip()
-                    if ls == "" or ls in std:
+                k=0
+                while k <len(g["lines"]):
+                    l= g["lines"][k]
+                    ls = l.strip()+"\n"
+                    k+=1
+                    if l.strip() == "":
                         g["lines"].remove(l)
+                        k-=1
+                        continue
+                    for j in std:
+                         if re.match("^\\s*" + j + "+", ls, flags=re.M) is not None:
+                            g["lines"].remove(l)
+                            k-=1
+                            break
                 if g["header"].startswith("interface"):
                     head = g["header"][10:]
                     if intc[intc.index(head) + 50] == "u":
                         g["lines"].append("no shutdown\n")
-                g["lines"].append("exit\n")
-                run += g["header"] + "\n"
-                run += "".join(g["lines"])
+                if len(g["lines"]) != 0:
+                    g["lines"].append("exit\n")
+                    run += g["header"] + "\n"
+                    run += "".join(g["lines"])
+        f.write(run)
         del std
         del intc
-        print(run)
-        f.write(run)
         del run
         del grp
         logger.info(f"SUCCESS_RUN_CONFIG_PARSED_SUCCESSFUL", extra={'ip': ip, 'port': port})
@@ -112,7 +122,6 @@ def parse(input_filename: Path, ip: str, port: int):
         for vtp_konfig_zeile in zeilen[vtp_start_index:]:
             if ":" in vtp_konfig_zeile:
                 parts = vtp_konfig_zeile.split(":", 1)
-
                 if parts[0].strip() == "VTP Operating Mode":
                     vtp_commands_to_write.append(f"vtp mode {parts[1].strip()}\n")
                 elif parts[0].strip() == "VTP version running":
@@ -133,10 +142,11 @@ def parse(input_filename: Path, ip: str, port: int):
         logger.info(f"SUCCESS_OUTPUT_FILE_SAVED_SUCCESSFUL", extra={'ip': ip, 'port': port})
 
 
-GROUP_START_REGEXES = [re.compile(r"^router\s+(ospf)|(rip)|(bgp)"), re.compile(r"^interface .*"),
-    re.compile(r"^line (con)|(aux)|(vty) .*"), re.compile(r"^ip access-list (extended)|(standard) .*"),
-
-]
+GROUP_START_REGEXES = [#re.compile(r"^router\s+(ospf)|(rip)|(bgp)"),
+                       re.compile(r"^interface .*"),
+                       #re.compile(r"^line (con)|(aux)|(vty) .*"),
+                       #re.compile(r"^ip access-list (extended)|(standard) .*"),
+                       ]
 
 
 def extract_groups(run: str):
