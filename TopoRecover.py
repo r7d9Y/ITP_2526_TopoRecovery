@@ -212,7 +212,7 @@ def handle_devices_section(settings: dict, settings_path: Path) -> bool:
     -------
     - add: Adds a new device with ``ip``, ``port``, ``device_type``, ``device_ios``, ``username``, and ``password``. If the chosen port already exists for the IP, the operation is aborted.
 
-    - edit: Edits the properties (``device_type``, ``device_ios``, ``username``, ``password``) of a selected device. ``username`` and ``password`` may be set to empty values.
+    - edit: Edits the properties (``device_type``, ``device_ios``, ``username``, ``password``, ``secret``) of a selected device. ``username``, ``password`` and ``secret`` may be set to empty values.
 
     - remove: Removes a selected device. If no ports remain for an IP after removal, the entire IP entry is deleted.
 
@@ -272,11 +272,17 @@ def handle_devices_section(settings: dict, settings_path: Path) -> bool:
             if is_valid_pwd(password):
                 break
             print("No valid password entered, try again. Must match '^[\x21-\x7E]+$' or 'None'")
+        while True:
+            secret = click.prompt("Enter Secret (Enter 'None' if not wanted)", hide_input=True)
+            if is_valid_pwd(secret):
+                break
+            print("No valid secret entered, try again. Must match '^[\x21-\x7E]+$' or 'None'")
         devices.setdefault(ip, {})[port] = {
             "device_type": device_type,
             "device_ios": device_ios,
             "username": username,
-            "password": password
+            "password": password,
+            "secret": secret
         }
     elif action == 'edit':
         if not device_list:
@@ -286,14 +292,14 @@ def handle_devices_section(settings: dict, settings_path: Path) -> bool:
         ip, port, props = device_list[idx]
         logger.info(f"DEVICE_EDITING ip={ip} port={port}")
         # editable properties
-        editable_keys = ['device_type', 'device_ios', 'username', 'password']
+        editable_keys = ['device_type', 'device_ios', 'username', 'password', 'secret']
         # asks the user for input until valid input
         while True:
             key = indexed_choice(editable_keys, "Select property to edit (or Ctrl+C to finish)")
             while True:
-                if key in ['username', 'password']:
+                if key in ['username', 'password', 'secret']:
                     value = click.prompt(f"Enter new value for {key} (Enter 'None' if not wanted)", default="",
-                                         show_default=False, hide_input=(key == 'password'))
+                                         show_default=False, hide_input=(key == 'password' or key == 'secret'))
                 else:
                     value = click.prompt(f"Enter new value for {key}", default=props.get(key, ""))
                 if key == 'username' and not is_valid_username(value):
@@ -301,6 +307,9 @@ def handle_devices_section(settings: dict, settings_path: Path) -> bool:
                     continue
                 if key == 'password' and not is_valid_pwd(value):
                     print("No valid password entered, try again. Must match '^[\x21-\x7E]+$' or 'None'")
+                    continue
+                if key == 'secret' and not is_valid_pwd(value):
+                    print("No valid secret entered, try again. Must match '^[\x21-\x7E]+$' or 'None'")
                     continue
                 if key == 'device_type' and not is_valid_type(value):
                     print("Wrong device type. Has to be in [switch, router]")
@@ -383,7 +392,8 @@ def generate_reader_settings_template(filename,
                     "device_type": "",
                     "device_ios": "",
                     "username": "",
-                    "password": ""
+                    "password": "",
+                    "secret": ""
                 }
             }
         },
@@ -429,10 +439,10 @@ def generate_reader_settings_template(filename,
 
 
 def upload_configuration_to_devices(conf_file: str, device_type: str, ip: str, port: int, username: str = None,
-                                    password: str = None) -> bool:
+                                    password: str = None, secret: str = None) -> bool:
     logger.info(f"UPLOAD_CONFIGURATION_START ip={ip} port={port} device_type={device_type} conf_file={conf_file}")
     try:
-        confer = Confer(conf_file, device_type, ip, port, username, password)
+        confer = Confer(conf_file, device_type, ip, port, username, password, secret)
         confer.send_cmds()
         logger.info(f"UPLOAD_CONFIGURATION_SUCCESS ip={ip} port={port}")
         return True
@@ -541,18 +551,23 @@ def main(edit_settings, settings_path, generate_template, upload_config, version
                     break
                 click.echo("Invalid port number. Try again")
             while True:
-                username = click.prompt("Enter device username")
+                username = click.prompt("Enter device username: (if not wanted enter: 'None')")
                 if is_valid_username(username):
                     break
                 click.echo("Invalid username. Try again")
             while True:
-                password = click.prompt("Enter device password", hide_input=True)
+                password = click.prompt("Enter device password (if not wanted enter: 'None')", hide_input=True)
                 if is_valid_pwd(password):
                     break
                 click.echo("Invalid password. Try again")
+            while True:
+                secret = click.prompt("Enter device secret (if not wanted enter: 'None')", hide_input=True)
+                if is_valid_pwd(password):
+                    break
+                click.echo("Invalid secret. Try again")
             logger.info(
                 f"UPLOAD_CONFIGURATION_INPUTS conf_file={conf_file} device_ios={device_ios} ip={ip} port={port} username={username}")
-            success = upload_configuration_to_devices(conf_file, device_ios, ip, port, username, password)
+            success = upload_configuration_to_devices(conf_file, device_ios, ip, port, username, password, secret)
             if success:
                 click.echo("Configuration uploaded successfully.")
             else:
