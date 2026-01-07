@@ -520,12 +520,36 @@ def main(edit_settings, settings_path, generate_template, upload_config, version
         if upload_config:
             logger.info("UPLOAD_CONFIGURATION_REQUESTED")
             # Prompt for all required parameters interactively
-            conf_file = click.prompt("Enter configuration file to upload")
-            device_ios = click.prompt("Enter device IOS (e.g.: cisco_ios_telnet)")
-            ip = click.prompt("Enter device IP address")
-            port = click.prompt("Enter device port", type=int)
-            username = click.prompt("Enter device username")
-            password = click.prompt("Enter device password", hide_input=True)
+            while True:
+                conf_file = click.prompt("Enter configuration file to upload")
+                if Path(conf_file).exists():
+                    break
+                click.echo("File not found. Try again.")
+            while True:
+                device_ios = click.prompt("Enter device IOS (e.g.: cisco_ios_telnet)")
+                if is_valid_ios(device_ios):
+                    break
+                click.echo("Invalid IOS. Must end with '_telnet'. Try again.")
+            while True:
+                ip = click.prompt("Enter device IP address")
+                if is_valid_ip(ip):
+                    break
+                click.echo("Invalid IP address. Try again")
+            while True:
+                port = click.prompt("Enter device port", type=int)
+                if is_valid_port(port):
+                    break
+                click.echo("Invalid port number. Try again")
+            while True:
+                username = click.prompt("Enter device username")
+                if is_valid_username(username):
+                    break
+                click.echo("Invalid username. Try again")
+            while True:
+                password = click.prompt("Enter device password", hide_input=True)
+                if is_valid_pwd(password):
+                    break
+                click.echo("Invalid password. Try again")
             logger.info(
                 f"UPLOAD_CONFIGURATION_INPUTS conf_file={conf_file} device_ios={device_ios} ip={ip} port={port} username={username}")
             success = upload_configuration_to_devices(conf_file, device_ios, ip, port, username, password)

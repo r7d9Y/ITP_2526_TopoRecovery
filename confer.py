@@ -61,6 +61,7 @@ class Confer:
         """
         self.conn.connect()
         for cmd in self.cmds:
-            r = self.conn.send_command_with_response(cmd)
+            r = self.conn.send_command_with_response(cmd, expected_str=r"^.+[#>](\s*)?$")
+            print(r[0])
             if not r[0]:
                 logger.warning(f"WARNING_COMMAND_FAILED_WHILE_UPLOADING: {r[1]}")
