@@ -526,7 +526,8 @@ def main(edit_settings, settings_path, generate_template, upload_config, version
             port = click.prompt("Enter device port", type=int)
             username = click.prompt("Enter device username")
             password = click.prompt("Enter device password", hide_input=True)
-            logger.info(f"UPLOAD_CONFIGURATION_INPUTS conf_file={conf_file} device_ios={device_ios} ip={ip} port={port} username={username}")
+            logger.info(
+                f"UPLOAD_CONFIGURATION_INPUTS conf_file={conf_file} device_ios={device_ios} ip={ip} port={port} username={username}")
             success = upload_configuration_to_devices(conf_file, device_ios, ip, port, username, password)
             if success:
                 click.echo("Configuration uploaded successfully.")
@@ -547,32 +548,21 @@ def main(edit_settings, settings_path, generate_template, upload_config, version
             click.echo("Cleared output/ and raw_output/ folders.")
             logger.info("OUTPUT_FOLDERS_CLEARED")
             exit(0)
+
         # if the program reaches this point, it executes the config_reader and parser
-        try:
-            logger.info(f"CONFIG_READER_EXECUTE path={RAW_OUTPUT_PATH} settings={script_setting_path}")
-            config_reader.ConfigReader(RAW_OUTPUT_PATH, script_setting_path).execute()
-            logger.info("CONFIG_READER_EXECUTED")
-        except Exception as e:
-            logger.error(f"CONFIG_READER_ERROR error={e}")
-            click.echo(f"Error running config reader: {e}")
-            sys.exit(1)
+        config_reader.ConfigReader(RAW_OUTPUT_PATH, script_setting_path).execute()
+
         for raw_output_file in RAW_OUTPUT_PATH.glob("*_raw_config.txt"):
+            # checks if the name is in correct format
             file_name = raw_output_file.name
-            p = re.compile(r"((\d{1,3}\.){3}\d{1,3})_(\d{4,5})-\d{4}(_\d{2}){2}-(\d{2}_){3}raw_config\\.txt")
+            p = re.compile(r"((\d{1,3}\.){3}\d{1,3})_(\d{4,5})-\d{4}(_\d{2}){2}-(\d{2}_){3}raw_config\.txt")
             matches = p.match(file_name)
             if matches is None:
-                logger.debug(f"RAW_CONFIG_FILE_SKIPPED file_name={file_name}")
                 continue
-            try:
-                logger.info(f"RAW_CONFIG_FILE_PARSING file={raw_output_file} ip={matches.group(1)} port={matches.group(3)}")
-                parser.parse(raw_output_file, matches.group(1), matches.group(3))
-                logger.info(f"RAW_CONFIG_FILE_PARSED file={raw_output_file} ip={matches.group(1)} port={matches.group(3)}")
-            except Exception as e:
-                logger.error(f"RAW_CONFIG_FILE_PARSE_ERROR file={raw_output_file} ip={matches.group(1)} port={matches.group(3)} error={e}")
-                click.echo(f"Error parsing {raw_output_file}: {e}")
-                continue
+            # parses raw_config file and deletes it afterward
+            parser.parse(raw_output_file, matches.group(1), matches.group(3))
             raw_output_file.unlink()
-            logger.info(f"RAW_CONFIG_FILE_DELETED file={raw_output_file} ip={matches.group(1)} port={matches.group(3)}")
+
     except KeyboardInterrupt:
         logger.warning("PROGRAM_INTERRUPTED_BY_USER")
         click.echo("Program interrupted by user, exiting...")

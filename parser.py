@@ -33,7 +33,7 @@ def parse(input_filename: Path, ip: str, port: int):
         std = f.readlines()
 
     output_path = Path(re.sub("raw_", "", str(input_filename)))
-    # Elternordner automatisch anlegen
+    # automatically create output directory if it doesn't exist
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w") as f:
         # -----------VLAN------------
