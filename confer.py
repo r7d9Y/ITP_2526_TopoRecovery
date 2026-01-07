@@ -35,7 +35,7 @@ class Confer:
     """
 
     def __init__(self, conf_file: str, device_type: str, ip: str, port: int, username: str = None,
-                 password: str = None):
+                 password: str = None, secret: str = None):
         """
         Initialize the class with necessary configuration for connecting to a device
         and loading command configurations.
@@ -46,22 +46,28 @@ class Confer:
         :param port: Port number for the connection
         :param username: Username for authentication (optional)
         :param password: Password for authentication (optional)
+        :param secret: Secret for Privileged Exec Mode authentication (optional)
         """
         self.cmds = []
         with open(conf_file, "r", encoding="utf-8") as f:
             self.cmds = f.readlines()
-        self.conn = connector.Connector(device_type, ip, port, username, password)
+        self.conn = connector.Connector(device_type, ip, port, username, password, secret)
 
     def send_cmds(self):
         """
         Executes a series of commands by establishing a connection and sending
-        each command sequentially. If a command execution fails, logs a warning.
-
+        each command sequentially. If a command execution fails, logs a warning and prints it to the terminal.
         :return: None
         """
         self.conn.connect()
+        self.conn.go_to_glob_exec_mode()
+        self.conn.send_command_with_response("no logging console", expected_str=r"\(config[^\)]*\)#")
         for cmd in self.cmds:
-            r = self.conn.send_command_with_response(cmd, expected_str=r"^.+[#>](\s*)?$")
-            print(r[0])
+            r = self.conn.send_command_with_response(cmd, expected_str=r"\(config[^\)]*\)#")
             if not r[0]:
                 logger.warning(f"WARNING_COMMAND_FAILED_WHILE_UPLOADING: {r[1]}")
+                colorRed = "\033[31m"
+                colorReset = "\033[0m"
+                print(f"{colorRed}WARNING_COMMAND_FAILED_WHILE_UPLOADING: {r[1]}{colorReset}")
+        self.conn.go_to_glob_exec_mode()
+        self.conn.send_command_with_response("logging console", expected_str=r"\(config[^\)]*\)#")

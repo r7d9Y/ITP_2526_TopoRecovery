@@ -448,6 +448,9 @@ def upload_configuration_to_devices(conf_file: str, device_type: str, ip: str, p
         return True
     except Exception as e:
         logger.error(f"UPLOAD_CONFIGURATION_ERROR ip={ip} port={port} error={e}")
+        colorRed = "\033[31m"
+        colorReset = "\033[0m"
+        print(f"{colorRed}UPLOAD_CONFIGURATION_ERROR ip={ip} port={port} error={e}{colorReset}")
         return False
 
 
@@ -562,7 +565,7 @@ def main(edit_settings, settings_path, generate_template, upload_config, version
                 click.echo("Invalid password. Try again")
             while True:
                 secret = click.prompt("Enter device secret (if not wanted enter: 'None')", hide_input=True)
-                if is_valid_pwd(password):
+                if is_valid_pwd(secret):
                     break
                 click.echo("Invalid secret. Try again")
             logger.info(

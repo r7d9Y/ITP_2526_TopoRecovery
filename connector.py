@@ -38,10 +38,11 @@ class Connector:
         self.port = port
 
         # only set username and password if just the username is provided -> empty string pwd
-        if username:
+        if username and not username == "None":
             self.username = username
-            self.password = password
-        if secret:
+            if password and not password == "None":
+                self.password = password
+        if secret and not secret == "None":
             self.secret = secret
 
     def __repr__(self) -> str:
@@ -314,3 +315,20 @@ class Connector:
                 raise RuntimeError(f"RUNTIME_ERROR: unable to enter privileged execution mode due to missing " +
                                    f"'secret' parameter in settings file")
 
+    def go_to_glob_exec_mode(self) -> None:
+        """
+        From any mode goes into the Global execution mode.
+        :return:
+        """
+        current_mode = self.get_exec_mode()
+        if current_mode == ExecMode.GLOBAL_EXEC:
+            self.send_command_with_response("end", expected_str=".+#")
+            self.send_command_with_response("configure terminal", expected_str=r"\(config[^\)]*\)#")
+            return
+        if current_mode == ExecMode.PRIVILEGED_EXEC:
+            self.send_command_with_response("configure terminal", expected_str=r"\(config[^\)]*\)#")
+            return
+        if current_mode == ExecMode.USER_EXEC:
+            self.go_to_priv_exec_mode()
+            self.send_command_with_response("configure terminal", expected_str=r"\(config[^\)]*\)#")
+            return
