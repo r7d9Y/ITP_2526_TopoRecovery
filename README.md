@@ -10,7 +10,7 @@ GNS3).
 ## Requirements
 
 - Python 3.12+
-- numpy and clicker
+- netmiko and clicker
 
 ## Setup Instructions
 
